@@ -431,6 +431,9 @@ button, input, select, textarea { font: inherit; color: inherit; }
 /* ── content area ───────────────────────────────────────────────────────── */
 .ct { position: relative; min-width: 0; min-height: 0; overflow: hidden; background: var(--color-background, #fff); }
 .ct__view { height: 100%; overflow: auto; display: flex; flex-direction: column; }
+/* 作者样式里的 display:flex 会盖掉浏览器默认的 [hidden]{display:none}，
+   工作台显示时必须真正隐藏阅读视图，否则 grid 被顶到可视区外。 */
+.ct__view[hidden] { display: none; }
 
 .ct__host { min-height: 0; flex: 1 1 auto; display: flex; flex-direction: column; }
 

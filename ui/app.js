@@ -4307,11 +4307,8 @@
         openBtn.title = t("wbOpenTitle");
         openBtn.addEventListener("click", function () {
           setDrawer(false);
+          wbSyncTabUrl(model.url);
           wbOpen(model.id);
-          if (el.addressInput) {
-            addressEdited = true;
-            el.addressInput.value = model.url || "";
-          }
           showStatusNotice(t("wbAddressSynced").replace("{name}", model.name || model.id));
         });
         actions.appendChild(openBtn);
@@ -5863,7 +5860,9 @@
   function syncToolbar() {
     var tab = activeTab();
     var busy = !!(tab && tab.loading);
-    var live = !!(tab && tab.live);
+    // 工作台里的每个 pane 都是真实 WebView2，等同于「实时页面」模式已开启。
+    var wbVisible = !!(el.paneHost && !el.paneHost.hidden);
+    var live = !!(tab && tab.live) || wbVisible;
     if (el.addressInput) {
       var value = (tab && tab.url) || "";
       // 本地书没有网址：地址栏显示书名，别留一个空框让人以为坏了。
@@ -6496,7 +6495,11 @@
     if (show) {
       if (el.contentView) el.contentView.hidden = true;
       if (el.liveHost) el.liveHost.hidden = true;
+    } else if (el.contentView) {
+      // 关掉最后一个 pane 后要把阅读视图还回来，否则整块内容区空白。
+      el.contentView.hidden = false;
     }
+    syncToolbar();
   }
 
   function wbModelById(id) {
@@ -6801,6 +6804,24 @@
     return found;
   }
 
+  /** 工作台打开的是另一个视图，但地址栏/标签属于阅读器，必须同步当前地址，
+      否则工具栏「实时页面」和空正文卡片仍会指向上一次抓取的旧网址。 */
+  function wbSyncTabUrl(url) {
+    var tab = activeTab();
+    if (!tab || !isHttpUrl(url) || tab.url === url) return;
+    tab.url = url;
+    tab.title = "";
+    tab.error = null;
+    tab.payload = null;
+    tab.notice = "";
+    tab.loading = false;
+    state.lastUrl = url;
+    commitHistory(tab, url);
+    renderEmpty(tab);
+    renderTabs();
+    queuePersist();
+  }
+
   /** 按网址打开工作台：匹配已有模型，否则自动登记一个新模型。 */
   function wbOpenUrl(url) {
     url = String(url || "").trim();
@@ -6808,6 +6829,10 @@
       showStatusNotice(t("modelUrlInvalid"));
       return Promise.resolve(false);
     }
+    wbSyncTabUrl(url);
+    syncToolbar();
+    // 已开过同一模型时 wbOpen 会直接聚焦，这里仍要保证工作台视图在最前面。
+    wbEnsureVisible(true);
     var existing = wbFindModelByUrl(url);
     if (existing) return wbOpen(existing.id);
     var name = bareHost(url) || url;
@@ -8280,6 +8305,12 @@
         if (!tab) return;
         if (!tab.url) {
           showStatusNotice(t("urlEmpty"));
+          return;
+        }
+        // 工作台可见时这个按钮就是「退出实时视图」：回到阅读器，不启动旧的单实例会话。
+        if (el.paneHost && !el.paneHost.hidden) {
+          wbEnsureVisible(false);
+          syncToolbar();
           return;
         }
         if (tab.live) exitLive(tab);

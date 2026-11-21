@@ -389,3 +389,11 @@ DBX-Browser-LLM/
 - 旧阅读态残留的空正文卡片：AI 官网专用文案 + 「在大模型工作台打开」/「用系统浏览器打开」。
 
 验证：浏览器 mock 冒烟 17/17 通过（含按钮文案、地址栏同步、路由、自动登记、空正文卡片、无页面异常）；`node --check` 通过。详见 `docs/local-validation.md` 首节。
+
+### 12.1 真机第二轮：工作台可见性与旧地址残留
+
+- 现象：地址栏已是 DeepSeek，但阅读器报错卡片与「实时页面」按钮仍指向豆包；工作台 grid 没出现在可视区。
+- 根因一：`.ct__view { display:flex }` 覆盖了浏览器默认 `[hidden]{display:none}`，`wbEnsureVisible(true)` 没能真正隐藏阅读视图，grid 被顶到下方。
+- 根因二：`wbOpenUrl()` 只打开工作台 pane，没有更新阅读标签的 `url`/payload，工具栏和旧卡片继续用上一次抓取的地址。
+- 修复：补 `.ct__view[hidden]{display:none}`；新增 `wbSyncTabUrl()` 在切工作台时同步标签地址、清空旧正文；工作台可见时「实时页面」按钮显示为按下，点击则退出工作台（不启动旧单实例会话，避免再开一个豆包 WebView2）。
+- 验证：针对性 mock 冒烟 13/13 通过（阅读视图真正隐藏、grid 可见、地址跟随 DeepSeek、旧豆包内容清空、按钮状态与退出行为、无页面异常）。
