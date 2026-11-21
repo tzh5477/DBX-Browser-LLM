@@ -224,9 +224,16 @@
       wbTitle: "大模型工作台",
       workbench: "大模型工作台",
       wbModels: "管理模型",
-      wbOpen: "打开",
+      wbOpen: "工作台打开",
+      wbOpenTitle: "在「大模型工作台」的独立分屏里打开官网页面（不是上方阅读器地址栏）",
+      wbOpenBrowser: "浏览器打开",
+      wbBrowserTitle: "用系统浏览器打开该模型的官网（完整渲染，可正常登录）",
+      wbAddressSynced:
+        "已在「大模型工作台」打开 {name}，上方地址栏也已填入官网地址。阅读器只抓文章正文；AI 官网请点「工作台打开」或按地址栏「打开」进入工作台。",
+      wbAutoAdded: "已自动把 {name} 加入模型列表，可在设置里改名。",
+      wbNeedsModel: "请先添加一个模型，再点「工作台打开」。",
       wbClose: "关闭",
-      wbEmpty: "还没有打开的模型。点「管理模型」添加，再在模型列表里点「打开」。",
+      wbEmpty: "还没有打开的模型。点「管理模型」添加，再在模型列表里点「工作台打开」。",
       wbCount: "{n} 个已打开",
       wbStarting: "正在打开…",
       wbReady: "就绪",
@@ -305,6 +312,11 @@
         "这是首页 / 频道页 / 列表页，本身没有正文。直接点下面的链接就能进到目录或章节 —— 链接在插件里是可点的。",
       tryFullMode: "试试整页模式",
       openInNewTab: "在浏览器打开",
+      llmPageTitle: "这是 AI 对话页面，阅读器抓不到正文",
+      llmPageText:
+        "豆包 / ChatGPT / Kimi 这类官网是纯前端应用，正文完全由 JavaScript 渲染，阅读器只能拿到空壳。请点下面的「在大模型工作台打开」——每个模型有独立窗口和登录态，可以直接对话。",
+      openInWorkbench: "在大模型工作台打开",
+      openInRealBrowser: "用系统浏览器打开",
       localBook: "本地小说",
       localHead: "本地小说",
       localImport: "导入 txt",
@@ -572,9 +584,16 @@
       wbTitle: "LLM Workbench",
       workbench: "LLM Workbench",
       wbModels: "Manage models",
-      wbOpen: "Open",
+      wbOpen: "Open in workbench",
+      wbOpenTitle: "Open in a dedicated LLM Workbench pane (not the reader address bar above)",
+      wbOpenBrowser: "Open in browser",
+      wbBrowserTitle: "Open this model's site in your system browser (full rendering, normal login)",
+      wbAddressSynced:
+        "Opened {name} in the LLM Workbench; the address bar above is filled too. The reader only extracts article text - for AI sites use Open in workbench, or press Open in the address bar.",
+      wbAutoAdded: "Added {name} to your models; rename it in settings if you like.",
+      wbNeedsModel: "Add a model first, then click Open in workbench.",
       wbClose: "Close",
-      wbEmpty: "No models open yet. Add one under Manage models, then click Open.",
+      wbEmpty: "No models open yet. Add one under Manage models, then click Open in workbench.",
       wbCount: "{n} open",
       wbStarting: "Opening…",
       wbReady: "Ready",
@@ -652,6 +671,11 @@
         "It is a home / channel / listing page, so it has no article of its own. Click a link below to go to the contents or a chapter — links work inside the plugin.",
       tryFullMode: "Try full-page mode",
       openInNewTab: "Open in a browser",
+      llmPageTitle: "This is an AI chat page - the reader has no text",
+      llmPageText:
+        "Sites like Doubao / ChatGPT / Kimi are pure front-end apps: their content is rendered entirely by JavaScript, so the reader only sees an empty shell. Use Open in LLM Workbench below - every model gets its own window and login session.",
+      openInWorkbench: "Open in LLM Workbench",
+      openInRealBrowser: "Open in system browser",
       charsCount: "{n} chars",
       resumed: "Resumed where you left off",
       localBook: "Local novel",
@@ -1897,17 +1921,15 @@
     );
   }
 
-  function openInRealBrowser() {
-    var tab = activeTab();
-    if (!tab || !tab.url) {
+  function openInRealBrowserUrl(url, css) {
+    if (!isHttpUrl(url)) {
       showStatusNotice(t("browserNeedUrl"));
       return;
     }
-    var url = tab.url;
     showStatusNotice(t("browserOpening"));
     invoke(
       "webview/openInBrowser",
-      { url: url, css: browserWindowCss() },
+      { url: url, css: css || "" },
       20000
     ).then(
       function (result) {
@@ -1920,6 +1942,15 @@
         showStatusNotice(humanError(error, url));
       }
     );
+  }
+
+  function openInRealBrowser() {
+    var tab = activeTab();
+    if (!tab || !tab.url) {
+      showStatusNotice(t("browserNeedUrl"));
+      return;
+    }
+    openInRealBrowserUrl(tab.url, browserWindowCss());
   }
 
   /** 一键把当前网址放回地址栏：填好并全选，方便直接复制或改一段再打开。 */
@@ -4269,15 +4300,30 @@
       row.appendChild(info);
 
       var actions = node("div", "mdl__actions");
-      // 打开按钮（阶段 2）：点击为该模型开一个独立 pane。
+      // 打开按钮：明确告诉用户去的是分屏工作台，不是上方阅读器。
       if (model.enabled !== false) {
         var openBtn = node("button", "mdl__btn mdl__btn--open", t("wbOpen"));
         openBtn.type = "button";
+        openBtn.title = t("wbOpenTitle");
         openBtn.addEventListener("click", function () {
           setDrawer(false);
           wbOpen(model.id);
+          if (el.addressInput) {
+            addressEdited = true;
+            el.addressInput.value = model.url || "";
+          }
+          showStatusNotice(t("wbAddressSynced").replace("{name}", model.name || model.id));
         });
         actions.appendChild(openBtn);
+
+        var browserBtn = node("button", "mdl__btn", t("wbOpenBrowser"));
+        browserBtn.type = "button";
+        browserBtn.title = t("wbBrowserTitle");
+        browserBtn.addEventListener("click", function () {
+          setDrawer(false);
+          openInRealBrowserUrl(model.url, "");
+        });
+        actions.appendChild(browserBtn);
       }
       var editBtn = node("button", "mdl__btn", t("modelEdit"));
       editBtn.type = "button";
@@ -5034,6 +5080,24 @@
 
   function buildBlockedCard(tab, payload) {
     var card = node("div", "blocked");
+    // AI 官网走工作台，不走阅读器 —— 这里给出明确的下一步，而不是让用户重试整页模式。
+    var llmUrl = isLlmSiteUrl(payload.url || tab.url || "") ? (payload.url || tab.url) : "";
+    if (llmUrl) {
+      card.appendChild(node("div", "blocked__title", t("llmPageTitle")));
+      card.appendChild(node("p", "blocked__text", t("llmPageText")));
+      card.appendChild(node("p", "blocked__facts", llmUrl));
+      var llmActions = node("div", "blocked__actions");
+      var inWb = node("button", "btn", t("openInWorkbench"));
+      inWb.type = "button";
+      inWb.addEventListener("click", function () { wbOpenUrl(llmUrl); });
+      llmActions.appendChild(inWb);
+      var inBrowser = node("button", "btn", t("openInRealBrowser"));
+      inBrowser.type = "button";
+      inBrowser.addEventListener("click", function () { openInRealBrowserUrl(llmUrl, ""); });
+      llmActions.appendChild(inBrowser);
+      card.appendChild(llmActions);
+      return card;
+    }
     // 两种原因分开说，因为处置方式不同：
     //   1. 站点给了登录墙 / 人机校验  -> 换详情页，或先在浏览器里登录
     //   2. 正文由前端脚本渲染 / 确实没有正文 -> 换详情页，或用整页模式
@@ -6407,6 +6471,12 @@
         renderError(tab);
         return;
       }
+      // AI 官网是纯前端应用，阅读器抓不到正文 —— 直接转到分屏工作台，
+      // 而不是让用户先看到一条"没有抓到可读内容"再猜该点哪。
+      if (isLlmSiteUrl(url)) {
+        wbOpenUrl(url);
+        return;
+      }
       navigate(tab, url, { push: true });
     });
   }
@@ -6685,6 +6755,77 @@
       if (pane) pane.root.classList.toggle("wb-pane--active", id === wbActiveId);
     });
     wbRenderChrome();
+  }
+
+  /** 官网大模型域名：用于把阅读器地址栏的 AI 官网地址自动转到工作台。 */
+  var LLM_HOSTS = [
+    "chatgpt.com", "openai.com", "claude.ai", "anthropic.com",
+    "doubao.com", "kimi.moonshot.cn", "moonshot.cn", "chat.deepseek.com",
+    "deepseek.com", "yuanbao.tencent.com", "tongyi.aliyun.com",
+    "gemini.google.com", "poe.com", "grok.com", "perplexity.ai",
+    "copilot.microsoft.com", "yiyan.baidu.com", "wenxin.baidu.com"
+  ];
+
+  function bareHost(url) {
+    return hostOf(url).toLowerCase().replace(/^www\./, "");
+  }
+
+  function isLlmSiteUrl(url) {
+    if (!isHttpUrl(url)) return false;
+    var host = bareHost(url);
+    if (!host) return false;
+    var i;
+    for (i = 0; i < state.models.length; i += 1) {
+      if (isHttpUrl(state.models[i].url) && bareHost(state.models[i].url) === host) return true;
+    }
+    return LLM_HOSTS.some(function (suffix) {
+      return host === suffix || host.slice(-(suffix.length + 1)) === "." + suffix;
+    });
+  }
+
+  /** 找到已配置的模型：同域名优先，路径互相包含者优先。 */
+  function wbFindModelByUrl(url) {
+    var host = bareHost(url);
+    if (!host) return null;
+    var path = "";
+    try { path = new NativeUrl(url).pathname || "/"; } catch (error) { path = ""; }
+    var found = null;
+    state.models.forEach(function (model) {
+      if (!isHttpUrl(model.url) || bareHost(model.url) !== host) return;
+      var modelPath = "";
+      try { modelPath = new NativeUrl(model.url).pathname || "/"; } catch (error) { modelPath = ""; }
+      if (!found || (path && modelPath && (path.indexOf(modelPath) === 0 || modelPath.indexOf(path) === 0))) {
+        found = model;
+      }
+    });
+    return found;
+  }
+
+  /** 按网址打开工作台：匹配已有模型，否则自动登记一个新模型。 */
+  function wbOpenUrl(url) {
+    url = String(url || "").trim();
+    if (!isHttpUrl(url)) {
+      showStatusNotice(t("modelUrlInvalid"));
+      return Promise.resolve(false);
+    }
+    var existing = wbFindModelByUrl(url);
+    if (existing) return wbOpen(existing.id);
+    var name = bareHost(url) || url;
+    return invoke(
+      "webview/modelUpsert",
+      { model: { id: "", name: name, url: url, enabled: true } },
+      15000
+    ).then(function (result) {
+      var id = result && result.model && result.model.id;
+      if (!id) return false;
+      return loadModels().then(function () {
+        showStatusNotice(t("wbAutoAdded").replace("{name}", name));
+        return wbOpen(id);
+      });
+    }).catch(function (error) {
+      showStatusNotice(humanError(error, url));
+      return false;
+    });
   }
 
   /** 打开一个模型的 pane（已开则聚焦）。 */
