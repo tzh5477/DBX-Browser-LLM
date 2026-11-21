@@ -9,14 +9,14 @@
 ## 0. 本地先装上（不等上架）
 
 未签名包默认不能装。插件中心 → 设置 → 勾选 **「允许安装未签名开发包」**，再导入
-`dist/com.dbx.webview-<ver>-windows-x64.dbxp` 即可。这个开关不会放宽官方商店的校验。
+`dist/com.xingxi.llm-workbench-<ver>-windows-x64.dbxp` 即可。这个开关不会放宽官方商店的校验。
 
 ## 1. 发布源码与候选 Release
 
 ```bash
 # 版本号必须是没发布过的新版本，且与 manifest.json 一致
-git tag v0.7.6
-git push origin v0.7.6
+git tag v0.8.0
+git push origin v0.8.0
 # 在 GitHub 上基于该 Tag 创建 Release 并发布
 ```
 
@@ -24,8 +24,8 @@ Release 发布后，`.github/workflows/plugin-release.yml` 会调用
 `t8y2/dbx/.github/workflows/plugin-release-reusable.yml@plugin-sdk-v1`，
 按平台构建候选包并附到 Release：
 
-- `com.dbx.webview-<ver>-windows-x64.dbxp`（**未签名**）
-- `com.dbx.webview-<ver>-windows-x64.artifact.json`
+- `com.xingxi.llm-workbench-<ver>-windows-x64.dbxp`（**未签名**）
+- `com.xingxi.llm-workbench-<ver>-windows-x64.artifact.json`
 - `release-candidates.json`（汇总，商店自动化读这个）
 
 > 不要把 `dist/` 或 `.dbxp` 提交进 Git。`.gitignore` 已经排除。
@@ -37,7 +37,7 @@ Release 发布后，`.github/workflows/plugin-release.yml` 会调用
 
 ```json
 {
-  "repository": "chenjie1024/DBX-Browser",
+  "repository": "tzh5477/DBX-Browser-LLM",
   "metadataPath": ".dbx-store.json",
   "autoUpdate": true
 }
@@ -54,7 +54,7 @@ Fork `t8y2/dbx-store`，向 `main` 提一个 PR，包含两个文件：
   ```json
   { "id": "xingxi", "name": "xingxi", "status": "active" }
   ```
-- `candidates/com.dbx.webview.json` —— 候选元数据（本仓库 `store/candidates/com.dbx.webview.json` 是现成模板）。
+- `candidates/com.xingxi.llm-workbench.json` —— 候选元数据（本仓库 `store/candidates/com.xingxi.llm-workbench.json` 是现成模板）。
 
 候选文件规则（来自 `scripts/validate.mjs`，会被 CI 逐条校验）：
 
@@ -71,7 +71,7 @@ Fork `t8y2/dbx-store`，向 `main` 提一个 PR，包含两个文件：
 `sha256` / `size` 以 Release 里 `release-candidates.json` 的值为准（CI 构建的字节才算数）：
 
 ```bash
-curl -sSL https://github.com/chenjie1024/DBX-Browser/releases/download/v0.7.6/release-candidates.json
+curl -sSL https://github.com/tzh5477/DBX-Browser-LLM/releases/download/v0.8.0/release-candidates.json
 ```
 
 ## 4. 审核与签名
@@ -79,8 +79,8 @@ curl -sSL https://github.com/chenjie1024/DBX-Browser/releases/download/v0.7.6/re
 - CI 会先**保持红色**，显示 `open candidate(s) awaiting DBX Store signing` —— 这是故意的，防止未签名内容被合并。
 - 维护者在 PR 上运行受保护的 **Sign plugin PR candidates** 工作流（`/sign` 评论或手动触发）：
   拉取固定 SHA-256 的候选包 → 校验未签名且身份匹配 → 用 `DBX_STORE_SIGNING_KEY` 做 Ed25519 签名 →
-  发布签名包、artifact 元数据与签名回执 → 把 `plugins/com.dbx.webview.json`、
-  重新生成的 `catalog/index.json` 写回 PR 分支，并删除 `candidates/com.dbx.webview.json`。
+  发布签名包、artifact 元数据与签名回执 → 把 `plugins/com.xingxi.llm-workbench.json`、
+  重新生成的 `catalog/index.json` 写回 PR 分支，并删除 `candidates/com.xingxi.llm-workbench.json`。
 - CI 转绿后维护者合并 PR，插件出现在商店。
 
 ## 5. 更新已有版本
@@ -102,7 +102,7 @@ curl -sSL https://github.com/chenjie1024/DBX-Browser/releases/download/v0.7.6/re
 | 项 | 位置 |
 |---|---|
 | 商店元数据（自动同步读） | `.dbx-store.json` |
-| 候选元数据模板 | `store/candidates/com.dbx.webview.json` |
+| 候选元数据模板 | `store/candidates/com.xingxi.llm-workbench.json` |
 | 发布者记录模板 | `store/publishers/xingxi.json` |
 | 自动同步登记条目 | `store/plugin-source-entry.json` |
 | 发布工作流 | `.github/workflows/plugin-release.yml` |

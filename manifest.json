@@ -1,14 +1,14 @@
 {
   "$schema": "https://raw.githubusercontent.com/t8y2/dbx/main/plugins/manifest.schema.json",
   "manifest_version": 1,
-  "id": "com.dbx.webview",
-  "name": "Browser",
-  "version": "0.7.10",
+  "id": "com.xingxi.llm-workbench",
+  "name": "LLM Workbench",
+  "version": "0.8.0",
   "publisher": "xingxi",
-  "description": "在 DBX 内打开任意网站：抓取正文、按站点规则重排；小红书等前端渲染站点可直接在插件内实时浏览、登录和评论。",
+  "description": "在 DBX 内集中使用多家官网大模型：自定义模型管理、多窗口分屏、一键批量群发、图片/文件上传下载，登录态按会话留存。",
   "icon": "assets/plugin.svg",
-  "source": "https://github.com/chenjie1024/DBX-Browser",
-  "homepage": "https://github.com/chenjie1024/DBX-Browser",
+  "source": "https://github.com/tzh5477/DBX-Browser-LLM",
+  "homepage": "https://github.com/tzh5477/DBX-Browser-LLM",
   "engines": {
     "dbx": ">=0.6.0",
     "host_api": "1"
@@ -31,69 +31,70 @@
   "contributions": [
     {
       "type": "workbench",
-      "id": "com.dbx.webview.reader",
-      "label": "Browser",
-      "description": "输入任意网址，抓取正文并按站点规则渲染成干净的阅读视图。",
+      "id": "com.xingxi.llm-workbench.reader",
+      "label": "LLM Workbench",
+      "description": "管理多家官网大模型，分屏对话、一键群发与文件传输。",
       "icon": "assets/plugin.svg"
     },
     {
       "type": "command",
-      "id": "com.dbx.webview.open",
-      "label": "Browser",
-      "description": "在新的标签页打开 Browser 工作台。",
+      "id": "com.xingxi.llm-workbench.open",
+      "label": "LLM Workbench",
+      "description": "在新的标签页打开大模型工作台。",
       "icon": "assets/plugin.svg",
       "action": {
         "type": "open-workbench",
-        "workbench": "com.dbx.webview.reader",
+        "workbench": "com.xingxi.llm-workbench.reader",
         "presentation": "tab",
         "reuse": "singleton"
       }
     },
     {
       "type": "menus",
-      "id": "com.dbx.webview.menus",
+      "id": "com.xingxi.llm-workbench.menus",
       "items": [
         {
           "location": "commandPalette",
-          "command": "com.dbx.webview.open",
+          "command": "com.xingxi.llm-workbench.open",
           "group": "navigation",
           "order": 40
         },
         {
           "location": "appToolbar",
-          "command": "com.dbx.webview.open",
+          "command": "com.xingxi.llm-workbench.open",
           "group": "navigation",
           "order": 40,
           "default_visible": true
         }
       ]
-    }  ],
+    }
+  ],
   "localizations": {
     "zh-CN": {
-      "name": "Browser",
-      "description": "在 DBX 内打开任意网站：抓取正文、按站点规则重排；小红书等前端渲染站点可直接在插件内实时浏览、登录和评论。",
+      "name": "大模型工作台",
+      "description": "在 DBX 内集中使用多家官网大模型：自定义模型管理、多窗口分屏、一键批量群发、图片/文件上传下载，登录态按会话留存。",
       "contributions": {
-        "com.dbx.webview.reader": {
-          "label": "Browser",
-          "description": "输入任意网址，抓取正文并按站点规则渲染成干净的阅读视图。"
+        "com.xingxi.llm-workbench.reader": {
+          "label": "大模型工作台",
+          "description": "管理多家官网大模型，分屏对话、一键群发与文件传输。"
         },
-        "com.dbx.webview.open": {
-          "label": "Browser",
-          "description": "在新的标签页打开 Browser 工作台。"
+        "com.xingxi.llm-workbench.open": {
+          "label": "大模型工作台",
+          "description": "在新的标签页打开大模型工作台。"
         }
       }
     },
     "en": {
-      "name": "Browser",
-      "description": "Open any website inside DBX: fetch and restyle pages, and browse/login/comment on JavaScript-rendered sites like Xiaohongshu inside the plugin.",
+      "name": "LLM Workbench",
+      "description": "Use multiple official LLM chat sites inside DBX: manage custom models, split-screen panes, one-click bulk send, image/file upload and download, with per-session login persistence.",
       "contributions": {
-        "com.dbx.webview.reader": {
-          "label": "Browser",
-          "description": "Enter any URL to fetch and render it as a clean reading view."
+        "com.xingxi.llm-workbench.reader": {
+          "label": "LLM Workbench",
+          "description": "Manage official LLM chat sites: side-by-side panes, bulk send, and file transfer."
         },
-        "com.dbx.webview.open": {
-          "label": "Browser",
-          "description": "Open the Browser workbench in a new tab."
+        "com.xingxi.llm-workbench.open": {
+          "label": "LLM Workbench",
+          "description": "Open the LLM workbench in a new tab."
         }
       }
     }

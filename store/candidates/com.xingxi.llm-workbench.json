@@ -1,38 +1,39 @@
 {
     "schemaVersion":  1,
-    "id":  "com.dbx.webview",
+    "id":  "com.xingxi.llm-workbench",
     "publisher":  "xingxi",
-    "version":  "0.7.10",
-    "name":  "Browser",
-    "description":  "一个工作台解决三件事：干净读文章、实时逛小红书抖音、离线看小说——全在 DBX 内完成。",
-    "icon":  "https://raw.githubusercontent.com/chenjie1024/DBX-Browser/v0.7.10/assets/plugin.svg",
+    "version":  "0.8.0",
+    "name":  "LLM Workbench",
+    "description":  "在 DBX 内集中使用多家官网大模型：自定义模型管理、多窗口分屏、一键批量群发、图片/文件上传下载，登录态按会话留存。",
+    "icon":  "https://raw.githubusercontent.com/tzh5477/DBX-Browser-LLM/v0.8.0/assets/plugin.svg",
     "tags":  [
-                 "web",
-                 "reader",
-                 "browser",
-                 "novel"
+                 "llm",
+                 "ai",
+                 "chat",
+                 "workbench",
+                 "multitask"
              ],
     "permissions":  [
                         "host.storage",
                         "host.events",
                         "host.binary"
                     ],
-    "source":  "https://github.com/chenjie1024/DBX-Browser/tree/v0.7.10",
-    "homepage":  "https://github.com/chenjie1024/DBX-Browser",
+    "source":  "https://github.com/tzh5477/DBX-Browser-LLM/tree/v0.8.0",
+    "homepage":  "https://github.com/tzh5477/DBX-Browser-LLM",
     "license":  "MIT",
-    "releaseNotes":  "首个公开版本：网页正文抽取、站点预设（可自定义增删）、实时页面渲染与鼠标键盘转发、本地 txt 小说阅读。",
+    "releaseNotes":  "从 Browser fork 独立，新增大模型工作台——自定义模型管理、多 pane 分屏、一键批量群发、图片/文件上传下载与访问记录留存；保留原网页阅读/实时页面能力。",
     "localizations":  {
                           "zh-CN":  {
-                                        "name":  "Browser",
-                                        "description":  "一个工作台解决三件事：干净读文章、实时逛小红书抖音、离线看小说——全在 DBX 内完成。"
+                                        "name":  "大模型工作台",
+                                        "description":  "在 DBX 内集中使用多家官网大模型：自定义模型管理、多窗口分屏、一键批量群发、图片/文件上传下载，登录态按会话留存。"
                                     }
                       },
     "targets":  [
                     {
                         "target":  "windows-x64",
-                        "url":  "https://github.com/chenjie1024/DBX-Browser/releases/download/v0.7.10/com.dbx.webview-0.7.10-windows-x64.dbxp",
-                        "sha256":  "1cf373ed32b6b0d43091496b2301242bf30369da417073114cdc118263345d0b",
-                        "size":  2794270
+                        "url":  "https://github.com/tzh5477/DBX-Browser-LLM/releases/download/v0.8.0/com.xingxi.llm-workbench-0.8.0-windows-x64.dbxp",
+                        "sha256":  "TODO_FILL_FROM_RELEASE_CANDIDATES",
+                        "size":  0
                     }
                 ]
 }

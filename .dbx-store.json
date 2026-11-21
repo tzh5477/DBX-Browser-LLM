@@ -1,21 +1,21 @@
 {
-    "name":  "Browser",
-    "description":  "一个工作台解决三件事：干净读文章、实时逛小红书抖音、离线看小说——全在 DBX 内完成。",
+    "name":  "LLM Workbench",
+    "description":  "在 DBX 内集中使用多家官网大模型：自定义模型管理、多窗口分屏、一键批量群发、图片/文件上传下载，登录态按会话留存。",
     "icon":  "assets/plugin.svg",
     "tags":  [
-                 "web",
-                 "reader",
-                 "browser",
-                 "novel",
-                 "scraping"
+                 "llm",
+                 "ai",
+                 "chat",
+                 "workbench",
+                 "multitask"
              ],
     "permissions":  [
                         "host.storage",
                         "host.events",
                         "host.binary"
                     ],
-    "source":  "https://github.com/chenjie1024/DBX-Browser",
-    "homepage":  "https://github.com/chenjie1024/DBX-Browser",
+    "source":  "https://github.com/tzh5477/DBX-Browser-LLM",
+    "homepage":  "https://github.com/tzh5477/DBX-Browser-LLM",
     "license":  "MIT",
-    "releaseNotes":  "首个公开版本：网页正文抽取、站点预设（可自定义增删）、实时页面渲染与鼠标键盘转发、本地 txt 小说阅读。"
+    "releaseNotes":  "0.8.0：从 Browser fork 独立，新增大模型工作台——自定义模型管理、多 pane 分屏、一键批量群发、图片/文件上传下载与访问记录留存；保留原网页阅读/实时页面能力。"
 }
