@@ -225,6 +225,12 @@ button, input, select, textarea { font: inherit; color: inherit; }
   transition: background-color .12s ease, border-color .12s ease;
 }
 .tb__chip:hover { background: var(--color-muted, #f4f4f5); }
+.tb__chip--primary {
+  border-color: var(--color-primary, #2563eb);
+  color: var(--color-primary, #2563eb);
+  font-weight: 600;
+}
+.tb__chip--primary:hover { background: color-mix(in srgb, var(--color-primary, #2563eb) 12%, transparent); }
 .tb__chip[aria-pressed="true"] {
   border-color: color-mix(in srgb, var(--color-warning, #b45309) 55%, var(--color-border, #e4e4e7));
   color: var(--color-warning, #b45309);

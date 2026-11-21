@@ -222,6 +222,7 @@
       modelNameRequired: "请填写模型名称",
       /* 大模型工作台（多 pane） */
       wbTitle: "大模型工作台",
+      workbench: "大模型工作台",
       wbModels: "管理模型",
       wbOpen: "打开",
       wbClose: "关闭",
@@ -569,6 +570,7 @@
       modelNameRequired: "Please enter a model name",
       /* LLM workbench (multi-pane) */
       wbTitle: "LLM Workbench",
+      workbench: "LLM Workbench",
       wbModels: "Manage models",
       wbOpen: "Open",
       wbClose: "Close",
@@ -5757,6 +5759,7 @@
     setText($("btnHistoryClear"), t("clear"));
     setText($("btnPresetClear"), t("auto"));
     setText($("btnGo"), t("go"));
+    setText($("workbenchText"), t("workbench"));
 
     var modeSelect = $("modeSelect");
     if (modeSelect) {
@@ -8444,6 +8447,7 @@
       btnReload: $("btnReload"),
       btnSidebarToggle: $("btnSidebarToggle"),
       btnGo: $("btnGo"),
+      btnWorkbench: $("btnWorkbench"),
       btnCopyUrl: $("btnCopyUrl"),
       btnBookmark: $("btnBookmark"),
       bookmarkIcon: $("bookmarkIcon"),
@@ -8678,6 +8682,17 @@
     if (el.btnReload) el.btnReload.addEventListener("click", reload);
     if (el.btnBookmark) el.btnBookmark.addEventListener("click", toggleBookmark);
     if (el.btnOpenBrowser) el.btnOpenBrowser.addEventListener("click", openInRealBrowser);
+    if (el.btnWorkbench) el.btnWorkbench.addEventListener("click", function () {
+      // 若伪装层正显示，先切到真实界面，再进入工作台。
+      if (typeof setCover === "function" && disguise.active) setCover(false);
+      wbEnsureVisible(true);
+      wbRenderChrome();
+      if (!wbOrder.length) {
+        // 还没有 pane：直接打开设置抽屉的大模型页，引导用户点「打开」。
+        if (el.btnStyle) el.btnStyle.click();
+        setDrawerTab("models");
+      }
+    });
     if (el.btnCatalog) el.btnCatalog.addEventListener("click", goToCatalog);
     // 本地小说入口只在侧栏的「本地小说」页签里（工具栏不再占位）。
     if (el.btnLocalImport) el.btnLocalImport.addEventListener("click", pickLocalBook);
