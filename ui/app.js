@@ -194,7 +194,75 @@
       coverFilterLabel: "筛选",
       tabStyle: "样式",
       tabBrowser: "浏览器窗口",
+      tabModels: "大模型",
       tabGeneral: "设置",
+      /* 官网大模型管理面板 */
+      modelHint: "在此管理要在工作台中访问的大模型官网。首次使用已内置常用站点，可自由增删改。",
+      modelFormLegend: "新增 / 编辑模型",
+      modelNameLabel: "名称",
+      modelNamePlaceholder: "例如 ChatGPT",
+      modelUrlLabel: "对话页网址",
+      modelUrlPlaceholder: "https://chatgpt.com/",
+      modelEnabledText: "启用（未启用则不显示在分屏选择中）",
+      modelSave: "保存模型",
+      modelCancel: "取消编辑",
+      modelUpdate: "更新模型",
+      modelSaved: "已保存",
+      modelListLegend: "已配置的模型",
+      modelEmpty: "还没有模型，添加一条开始使用。",
+      modelEdit: "编辑",
+      modelDelete: "删除",
+      modelDeleteConfirm: "确认删除？",
+      modelVisitLegend: "最近访问",
+      modelVisitEmpty: "暂无访问记录。",
+      modelVisitNever: "从未访问",
+      modelVisitTimes: "共 {n} 次访问",
+      modelVisitAt: "最近访问于 {t}",
+      modelUrlInvalid: "网址无效：只支持 http 或 https",
+      modelNameRequired: "请填写模型名称",
+      /* 大模型工作台（多 pane） */
+      wbTitle: "大模型工作台",
+      wbModels: "管理模型",
+      wbOpen: "打开",
+      wbClose: "关闭",
+      wbEmpty: "还没有打开的模型。点「管理模型」添加，再在模型列表里点「打开」。",
+      wbCount: "{n} 个已打开",
+      wbStarting: "正在打开…",
+      wbReady: "就绪",
+      wbError: "打开失败",
+      wbActive: "当前",
+      wbFocusHint: "点击画面即可操作 · 中文输入法直接输入",
+      /* 一键批量群发（阶段 3） */
+      wbBatch: "批量群发",
+      batchTitle: "一键群发到多个模型",
+      batchHint: "勾选模型并输入文本，将同时发送到各模型的输入框。回答请在各窗口查看。",
+      batchSelectAll: "全选",
+      batchSelectNone: "全不选",
+      batchPlaceholder: "输入要群发的内容…",
+      batchSend: "发送",
+      batchSending: "发送中…",
+      batchEmpty: "请先添加一个模型",
+      batchNoSelection: "请至少勾选一个模型",
+      batchOk: "已发送",
+      batchFail: "失败",
+      batchResult: "共 {total} 个，成功 {ok} 个",
+      batchNeedsOpen: "未打开的模型需先打开窗口才能群发",
+      /* 文件上传 / 下载（阶段 4） */
+      wbUpload: "上传文件",
+      wbDownloads: "下载",
+      fileUploading: "上传中…",
+      fileUploaded: "已上传",
+      fileUploadFail: "上传失败",
+      fileNoPicker: "当前环境不支持选择文件（需在 DBX 宿主内）",
+      dlTitle: "下载文件",
+      dlEmpty: "该模型还没有下载记录",
+      dlRefresh: "刷新",
+      dlSave: "保存",
+      dlSaving: "读取中…",
+      dlSaved: "已保存到：{path}",
+      dlFail: "保存失败",
+      dlSize: "{n} B",
+      fileNoHost: "宿主文件能力不可用",
       coverCopied: "已复制结果（可直接粘到 Excel）",
       coverExported: "已按 CSV 复制 {n} 行（粘到 Excel 即可）",
       coverFiltered: "筛选后",
@@ -473,7 +541,75 @@
       coverFilterLabel: "Filter",
       tabStyle: "Style",
       tabBrowser: "Browser window",
+      tabModels: "Models",
       tabGeneral: "Settings",
+      /* LLM model management panel */
+      modelHint: "Manage the LLM sites available in the workbench. Common sites are preloaded; add, edit or remove freely.",
+      modelFormLegend: "Add / edit model",
+      modelNameLabel: "Name",
+      modelNamePlaceholder: "e.g. ChatGPT",
+      modelUrlLabel: "Chat page URL",
+      modelUrlPlaceholder: "https://chatgpt.com/",
+      modelEnabledText: "Enabled (disabled models are hidden from the pane picker)",
+      modelSave: "Add model",
+      modelCancel: "Cancel edit",
+      modelUpdate: "Update model",
+      modelSaved: "Saved",
+      modelListLegend: "Configured models",
+      modelEmpty: "No models yet. Add one to get started.",
+      modelEdit: "Edit",
+      modelDelete: "Delete",
+      modelDeleteConfirm: "Delete this model?",
+      modelVisitLegend: "Recent visits",
+      modelVisitEmpty: "No visits yet.",
+      modelVisitNever: "Never visited",
+      modelVisitTimes: "{n} visits",
+      modelVisitAt: "Last visit {t}",
+      modelUrlInvalid: "Invalid URL: only http or https are allowed",
+      modelNameRequired: "Please enter a model name",
+      /* LLM workbench (multi-pane) */
+      wbTitle: "LLM Workbench",
+      wbModels: "Manage models",
+      wbOpen: "Open",
+      wbClose: "Close",
+      wbEmpty: "No models open yet. Add one under Manage models, then click Open.",
+      wbCount: "{n} open",
+      wbStarting: "Opening…",
+      wbReady: "Ready",
+      wbError: "Failed to open",
+      wbActive: "Active",
+      wbFocusHint: "Click the page to interact · type with any IME",
+      /* Bulk send (phase 3) */
+      wbBatch: "Bulk send",
+      batchTitle: "Send to multiple models at once",
+      batchHint: "Pick models and type a message. It is submitted into each model's input. Read replies in each pane.",
+      batchSelectAll: "Select all",
+      batchSelectNone: "Clear",
+      batchPlaceholder: "Type the message to broadcast…",
+      batchSend: "Send",
+      batchSending: "Sending…",
+      batchEmpty: "Add a model first",
+      batchNoSelection: "Select at least one model",
+      batchOk: "Sent",
+      batchFail: "Failed",
+      batchResult: "{ok} of {total} succeeded",
+      batchNeedsOpen: "Models that are not open must be opened before bulk send",
+      /* File upload / download (phase 4) */
+      wbUpload: "Upload file",
+      wbDownloads: "Downloads",
+      fileUploading: "Uploading…",
+      fileUploaded: "Uploaded",
+      fileUploadFail: "Upload failed",
+      fileNoPicker: "File picking is unavailable here (open inside DBX host)",
+      dlTitle: "Downloads",
+      dlEmpty: "No downloads for this model yet",
+      dlRefresh: "Refresh",
+      dlSave: "Save",
+      dlSaving: "Reading…",
+      dlSaved: "Saved to: {path}",
+      dlFail: "Save failed",
+      dlSize: "{n} B",
+      fileNoHost: "Host file capability unavailable",
       coverCopied: "Result copied (paste straight into Excel)",
       coverExported: "{n} rows copied as CSV (paste into Excel)",
       coverFiltered: "Filtered",
@@ -823,8 +959,15 @@
     history: [],
     lastUrl: "",
     sidePanel: "tabs",
-    /* 设置抽屉当前页签：style / browser / general */
+    /* 设置抽屉当前页签：style / browser / models / general */
     drawerTab: "style",
+    /* 官网大模型配置（阶段 1）：从 webview/modelsList 载入 */
+    models: [],
+    visits: [],
+    modelEditingId: "",
+    /* 一键群发选中的模型 ID 集合（阶段 3） */
+    batchSelected: {},
+    batchSending: false,
     bootError: ""
   };
 
@@ -866,6 +1009,14 @@
     closing: false
   };
   var LIVE_HOSTS = ["xiaohongshu.com", "xhslink.com"];
+
+  /* 官网大模型工作台（阶段 2）：每模型一个 pane，独立会话/画布/worker。
+     与上面的单实例 liveState 完全分开：旧的小红书实时页面仍走 liveState，
+     工作台的多 pane 走这里的 wbPanes，避免互相干扰。 */
+  var wbPanes = {};          // modelId -> pane 对象
+  var wbOrder = [];          // pane 显示顺序（modelId 列表）
+  var wbActiveId = "";       // 当前聚焦的 pane
+  var wbFrameHeader = 11;    // LF1(3)+seq(4)+w(2)+h(2)
 
   /* ═══════════════════════════════════════════════════════════════════════
    * 4. Tiny helpers
@@ -4033,6 +4184,228 @@
     });
   }
 
+  /* ═══════════════════════════════════════════════════════════════════════
+   * 官网大模型管理面板（阶段 1）
+   * 全部经 webview/modelsList / modelUpsert / modelRemove / visitRecord RPC，
+   * 持久化在 sidecar 的 web-reader-settings.json，不依赖 host.storage。
+   * ═══════════════════════════════════════════════════════════════════════ */
+
+  function loadModels() {
+    return softInvoke("webview/modelsList", {}, 15000).then(function (result) {
+      if (result && !result.__error) {
+        state.models = Array.isArray(result.models) ? result.models.filter(function (m) {
+          return m && typeof m === "object" && typeof m.id === "string";
+        }) : [];
+        state.visits = Array.isArray(result.visits) ? result.visits.filter(function (v) {
+          return v && typeof v === "object" && typeof v.modelId === "string";
+        }) : [];
+      }
+      renderModelPanel();
+      // 群发栏若已展开，模型列表变了要同步勾选列表。
+      if (el.wbBatch && !el.wbBatch.hidden) renderBatchPanel();
+      return result && !result.__error;
+    });
+  }
+
+  function modelNameById(id) {
+    for (var i = 0; i < state.models.length; i += 1) {
+      if (state.models[i].id === id) return state.models[i].name;
+    }
+    return id;
+  }
+
+  function formatVisitTime(at) {
+    var value = num(at, 0);
+    if (!value) return "";
+    try {
+      var date = new Date(value);
+      return isNaN(date.getTime()) ? "" : date.toLocaleString();
+    } catch (error) {
+      return "";
+    }
+  }
+
+  function renderModelPanel() {
+    setText($("modelHint"), t("modelHint"));
+    setText($("modelFormLegend"), t("modelFormLegend"));
+    setText($("modelNameLabel"), t("modelNameLabel"));
+    setText($("modelUrlLabel"), t("modelUrlLabel"));
+    setText($("modelEnabledText"), t("modelEnabledText"));
+    setText($("modelSaveText"), state.modelEditingId ? t("modelUpdate") : t("modelSave"));
+    setText($("modelCancelText"), t("modelCancel"));
+    setText($("modelListLegend"), t("modelListLegend"));
+    setText($("modelVisitLegend"), t("modelVisitLegend"));
+    if (el.modelName && !el.modelName.placeholder) el.modelName.placeholder = t("modelNamePlaceholder");
+    if (el.modelUrl && !el.modelUrl.placeholder) el.modelUrl.placeholder = t("modelUrlPlaceholder");
+    if (el.btnModelCancel) el.btnModelCancel.hidden = !state.modelEditingId;
+
+    renderModelList();
+    renderModelVisits();
+  }
+
+  function renderModelList() {
+    var list = el.modelList;
+    if (!list) return;
+    clear(list);
+    if (!state.models.length) {
+      list.appendChild(node("div", "mdl__empty", t("modelEmpty")));
+      return;
+    }
+    state.models.forEach(function (model) {
+      var row = node("div", "mdl__row");
+      if (model.enabled === false) row.classList.add("mdl__row--off");
+
+      var info = node("div", "mdl__info");
+      var name = node("div", "mdl__name", model.name || t("modelNameLabel"));
+      var url = node("div", "mdl__url", model.url || "");
+      url.setAttribute("title", model.url || "");
+      info.appendChild(name);
+      info.appendChild(url);
+      // 访问次数小徽标
+      var count = state.visits.reduce(function (n, v) { return n + (v.modelId === model.id ? 1 : 0); }, 0);
+      info.appendChild(node("div", "mdl__meta", t("modelVisitTimes").replace("{n}", String(count))));
+      row.appendChild(info);
+
+      var actions = node("div", "mdl__actions");
+      // 打开按钮（阶段 2）：点击为该模型开一个独立 pane。
+      if (model.enabled !== false) {
+        var openBtn = node("button", "mdl__btn mdl__btn--open", t("wbOpen"));
+        openBtn.type = "button";
+        openBtn.addEventListener("click", function () {
+          setDrawer(false);
+          wbOpen(model.id);
+        });
+        actions.appendChild(openBtn);
+      }
+      var editBtn = node("button", "mdl__btn", t("modelEdit"));
+      editBtn.type = "button";
+      editBtn.addEventListener("click", function () { startModelEdit(model.id); });
+      actions.appendChild(editBtn);
+
+      var delBtn = node("button", "mdl__btn mdl__btn--danger", t("modelDelete"));
+      delBtn.type = "button";
+      delBtn.dataset.confirming = "";
+      delBtn.addEventListener("click", function () {
+        if (delBtn.dataset.confirming === "1") {
+          deleteModel(model.id);
+          return;
+        }
+        delBtn.dataset.confirming = "1";
+        setText(delBtn, t("modelDeleteConfirm"));
+        setTimeout(function () {
+          if (delBtn.dataset.confirming === "1") {
+            delBtn.dataset.confirming = "";
+            setText(delBtn, t("modelDelete"));
+          }
+        }, 4000);
+      });
+      actions.appendChild(delBtn);
+      row.appendChild(actions);
+      list.appendChild(row);
+    });
+  }
+
+  function renderModelVisits() {
+    var list = el.modelVisitList;
+    if (!list) return;
+    clear(list);
+    var recent = state.visits.slice(-12).reverse();
+    if (!recent.length) {
+      list.appendChild(node("div", "mdl__empty", t("modelVisitEmpty")));
+      return;
+    }
+    recent.forEach(function (visit) {
+      var row = node("div", "mdl__visit-row");
+      var when = formatVisitTime(visit.at);
+      row.appendChild(node("span", "mdl__visit-name", modelNameById(visit.modelId)));
+      row.appendChild(node("span", "mdl__visit-at", when));
+      list.appendChild(row);
+    });
+  }
+
+  function resetModelForm() {
+    state.modelEditingId = "";
+    if (el.modelEditId) el.modelEditId.value = "";
+    if (el.modelName) el.modelName.value = "";
+    if (el.modelUrl) el.modelUrl.value = "";
+    if (el.modelEnabled) el.modelEnabled.checked = true;
+    setText($("modelSaveText"), t("modelSave"));
+    if (el.btnModelCancel) el.btnModelCancel.hidden = true;
+    setModelFormStatus("");
+  }
+
+  function setModelFormStatus(message, isError) {
+    var nodeRef = el.modelFormStatus;
+    if (!nodeRef) return;
+    setText(nodeRef, message || "");
+    nodeRef.classList.toggle("dr__hint--bad", !!isError);
+    nodeRef.classList.toggle("dr__hint--ok", !!message && !isError);
+    nodeRef.hidden = !message;
+  }
+
+  function startModelEdit(id) {
+    var model = null;
+    for (var i = 0; i < state.models.length; i += 1) {
+      if (state.models[i].id === id) { model = state.models[i]; break; }
+    }
+    if (!model) return;
+    state.modelEditingId = model.id;
+    if (el.modelEditId) el.modelEditId.value = model.id;
+    if (el.modelName) el.modelName.value = model.name || "";
+    if (el.modelUrl) el.modelUrl.value = model.url || "";
+    if (el.modelEnabled) el.modelEnabled.checked = model.enabled !== false;
+    setText($("modelSaveText"), t("modelUpdate"));
+    if (el.btnModelCancel) el.btnModelCancel.hidden = false;
+    setModelFormStatus("");
+    if (el.modelName && typeof el.modelName.focus === "function") el.modelName.focus();
+  }
+
+  function saveModelFromForm() {
+    var name = el.modelName ? String(el.modelName.value || "").trim() : "";
+    var url = el.modelUrl ? String(el.modelUrl.value || "").trim() : "";
+    if (!name) { setModelFormStatus(t("modelNameRequired"), true); return; }
+    // 只做 scheme 预校验（后端仍会完整校验）；避免把明显错误送到后端。
+    if (!/^https?:\/\//i.test(url)) { setModelFormStatus(t("modelUrlInvalid"), true); return; }
+    var model = {
+      name: name,
+      url: url,
+      enabled: !!(el.modelEnabled && el.modelEnabled.checked)
+    };
+    var editingId = state.modelEditingId || (el.modelEditId ? el.modelEditId.value : "");
+    if (editingId) model.id = editingId;
+
+    setModelFormStatus("");
+    return invoke("webview/modelUpsert", { model: model }, 15000).then(function (result) {
+      if (result && result.__error) throw new Error(result.__error);
+      resetModelForm();
+      return loadModels();
+    }).then(function () {
+      setModelFormStatus(t("modelSaved"), false);
+    }).catch(function (error) {
+      setModelFormStatus(humanError(error), true);
+    });
+  }
+
+  function deleteModel(id) {
+    return invoke("webview/modelRemove", { id: id }, 15000).then(function (result) {
+      if (result && result.__error) throw new Error(result.__error);
+      if (state.modelEditingId === id) resetModelForm();
+      return loadModels();
+    }).catch(function (error) {
+      setModelFormStatus(humanError(error), true);
+    });
+  }
+
+  function wireModelsPanel() {
+    if (el.btnModelSave) el.btnModelSave.addEventListener("click", function () { saveModelFromForm(); });
+    if (el.btnModelCancel) el.btnModelCancel.addEventListener("click", function () { resetModelForm(); });
+    if (el.modelUrl) {
+      el.modelUrl.addEventListener("keydown", function (event) {
+        if (event.key === "Enter") { event.preventDefault(); saveModelFromForm(); }
+      });
+    }
+  }
+
   function renderDiagnostics() {
     var list = el.diagList;
     if (!list) return;
@@ -5363,6 +5736,7 @@
     setText($("styleText"), t("settings"));
     setText($("tabStyleText"), t("tabStyle"));
     setText($("tabBrowserText"), t("tabBrowser"));
+    setText($("tabModelsText"), t("tabModels"));
     setText($("tabGeneralText"), t("tabGeneral"));
     setText($("themeResetText"), t("followTheme"));
     setText($("resetAllText"), t("resetAll"));
@@ -5415,6 +5789,7 @@
       button.title = pair[1];
       button.setAttribute("aria-label", pair[1]);
     });
+    syncBatchCopy();
     syncDocTitle();
   }
 
@@ -6031,6 +6406,844 @@
       }
       navigate(tab, url, { push: true });
     });
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════════
+   * 15a. 官网大模型工作台（阶段 2）—— 多 pane，每模型一个独立 WebView2 会话
+   *
+   * 与 15b 的单实例实时页面完全独立：每个 pane 有自己的 canvas / worker /
+   * pendingFrame / 输入状态；帧按二进制通道 `webview/liveFrame:<modelId>` 分派；
+   * state/error 事件按 sessionId 分派。会话与登录态在 sidecar 按 modelId 隔离。
+   * 复用 15b 的 LIVE_WORKER_CODE 解码器（JPEG → canvas）。
+   * ═══════════════════════════════════════════════════════════════════════ */
+
+  /** 显示工作台容器，隐藏阅读视图与旧实时页面。 */
+  function wbEnsureVisible(show) {
+    if (el.paneHost) el.paneHost.hidden = !show;
+    if (show) {
+      if (el.contentView) el.contentView.hidden = true;
+      if (el.liveHost) el.liveHost.hidden = true;
+    }
+  }
+
+  function wbModelById(id) {
+    for (var i = 0; i < state.models.length; i += 1) {
+      if (state.models[i].id === id) return state.models[i];
+    }
+    return null;
+  }
+
+  /** 工作台顶栏计数与空状态。 */
+  function wbRenderChrome() {
+    setText($("wbTitle"), t("wbTitle"));
+    setText($("wbModelsText"), t("wbModels"));
+    setText($("wbEmpty"), t("wbEmpty"));
+    var count = wbOrder.length;
+    setText($("wbCount"), count ? t("wbCount").replace("{n}", String(count)) : "");
+    if (el.wbEmpty) el.wbEmpty.hidden = count > 0;
+  }
+
+  /** 每 pane 的 worker：复用 LIVE_WORKER_CODE，但状态独立挂在该 pane 上。 */
+  function wbStartWorker(pane) {
+    if (pane.workerFailed || !pane.canvas) return !!pane.worker;
+    if (pane.worker) return true;
+    if (
+      typeof window.Worker !== "function" || typeof window.Blob !== "function" ||
+      typeof window.URL === "undefined" || !pane.canvas.transferControlToOffscreen
+    ) {
+      pane.workerFailed = true;
+      return false;
+    }
+    try {
+      var url = URL.createObjectURL(new Blob([LIVE_WORKER_CODE], { type: "text/javascript" }));
+      var worker = new window.Worker(url);
+      var offscreen = pane.canvas.transferControlToOffscreen();
+      pane.worker = worker;
+      worker.onmessage = function (event) {
+        var message = event && event.data ? event.data : {};
+        if (message.type === "ready") {
+          pane.workerReady = true;
+          if (pane.pendingFrame) wbDrawFrame(pane);
+          return;
+        }
+        if (message.type === "drawn" || message.type === "failed") {
+          pane.workerBusy = false;
+          pane.frameBusy = false;
+          if (message.type === "drawn") {
+            pane.ready = true;
+            wbSetPaneStatus(pane, t("wbReady"), false);
+          }
+          if (pane.pendingFrame) wbDrawFrame(pane);
+        }
+      };
+      worker.onerror = function () {
+        pane.workerFailed = true;
+        pane.frameBusy = false;
+        if (pane.pendingFrame) wbDrawFrame(pane);
+      };
+      pane.canvas.hidden = false;
+      worker.postMessage(
+        { type: "init", canvas: offscreen, width: pane.canvas.width || 640, height: pane.canvas.height || 360 },
+        [offscreen]
+      );
+      return true;
+    } catch (error) {
+      pane.workerFailed = true;
+      pane.worker = null;
+      return false;
+    }
+  }
+
+  /** 把一帧画到某个 pane（worker 优先，退化到 createImageBitmap）。 */
+  function wbDrawFrame(pane) {
+    if (!pane.pendingFrame || pane.frameBusy) return;
+    var frame = pane.pendingFrame;
+    pane.pendingFrame = null;
+    pane.ready = true;
+    wbSetPaneStatus(pane, t("wbReady"), false);
+
+    if (wbStartWorker(pane)) {
+      if (!pane.workerReady) { pane.pendingFrame = frame; return; }
+      pane.frameBusy = true;
+      pane.workerBusy = true;
+      try {
+        pane.worker.postMessage({ type: "frame", buffer: frame.buffer }, [frame.buffer]);
+      } catch (error) {
+        pane.frameBusy = false;
+        pane.workerBusy = false;
+      }
+      return;
+    }
+    if (!pane.canvas) return;
+    pane.frameBusy = true;
+    if (typeof window.createImageBitmap === "function" && typeof window.Blob === "function") {
+      var blob = new Blob([frame], { type: "image/jpeg" });
+      window.createImageBitmap(blob).then(function (bitmap) {
+        try {
+          if (pane.canvas.width !== bitmap.width) pane.canvas.width = bitmap.width;
+          if (pane.canvas.height !== bitmap.height) pane.canvas.height = bitmap.height;
+          var ctx = pane.canvas.getContext("2d");
+          if (ctx) {
+            ctx.imageSmoothingEnabled = true;
+            if ("imageSmoothingQuality" in ctx) ctx.imageSmoothingQuality = "high";
+            ctx.drawImage(bitmap, 0, 0);
+          }
+        } catch (error) { /* 下一帧重试 */ }
+        if (bitmap.close) bitmap.close();
+        pane.frameBusy = false;
+        if (pane.pendingFrame) wbDrawFrame(pane);
+      }, function () {
+        pane.frameBusy = false;
+      });
+    } else {
+      pane.frameBusy = false;
+    }
+  }
+
+  /** 收到某会话的一帧：校验头部、去重 seq、放入 pane 的待画槽。 */
+  function wbIngestFrame(modelId, view) {
+    var pane = wbPanes[modelId];
+    if (!pane || view.length <= wbFrameHeader) return;
+    if (view[0] !== 0x4c || view[1] !== 0x46 || view[2] !== 0x31) return; // "LF1"
+    var header = new DataView(view.buffer, view.byteOffset, wbFrameHeader);
+    var seq = header.getUint32(3);
+    if (seq && seq <= pane.lastSeq) return;
+    pane.lastSeq = seq || pane.lastSeq + 1;
+    pane.pendingFrame = view.slice(wbFrameHeader);
+    wbDrawFrame(pane);
+  }
+
+  /** 二进制事件按通道名分派：`webview/liveFrame:<modelId>` → 对应 pane。 */
+  function wbOnBinary(payload) {
+    if (!payload || typeof payload.channel !== "string") return;
+    var prefix = "webview/liveFrame:";
+    if (payload.channel.indexOf(prefix) !== 0) return;
+    var modelId = payload.channel.slice(prefix.length);
+    if (!modelId || !wbPanes[modelId]) return;
+    var raw = payload.data;
+    var view;
+    if (raw instanceof Uint8Array) view = raw;
+    else if (raw instanceof ArrayBuffer) view = new Uint8Array(raw);
+    else if (raw && raw.buffer instanceof ArrayBuffer) view = new Uint8Array(raw.buffer, raw.byteOffset || 0, raw.byteLength || 0);
+    else return;
+    wbIngestFrame(modelId, view);
+  }
+
+  /** state 事件按 sessionId 更新 pane 的视口/标题。 */
+  function wbOnState(payload) {
+    if (!payload || !payload.sessionId) return;
+    var pane = wbPanes[payload.sessionId];
+    if (!pane) return;
+    if (payload.viewport) {
+      pane.width = num(payload.viewport.width, pane.width);
+      pane.height = num(payload.viewport.height, pane.height);
+    }
+    if (typeof payload.title === "string" && payload.title) wbSetPaneTitle(pane, payload.title);
+  }
+
+  function wbOnError(payload) {
+    if (!payload || !payload.sessionId) return;
+    var pane = wbPanes[payload.sessionId];
+    if (!pane) return;
+    wbSetPaneStatus(pane, t("wbError"), true);
+    if (payload.message) pane.error = payload.message;
+  }
+
+  function wbSetPaneStatus(pane, text, isError) {
+    if (!pane.statusEl) return;
+    setText(pane.statusEl, text || "");
+    pane.statusEl.classList.toggle("wb-pane__status--err", !!isError);
+  }
+
+  function wbSetPaneTitle(pane, title) {
+    pane.title = title;
+    if (pane.titleEl) setText(pane.titleEl, title);
+  }
+
+  /** 构造一个 pane 的 DOM（标题栏 + 画布 + 状态 + 隐藏输入法）。 */
+  function wbBuildPaneDom(pane) {
+    var root = node("div", "wb-pane");
+    root.dataset.modelId = pane.id;
+    var head = node("div", "wb-pane__head");
+    var title = node("span", "wb-pane__title", pane.name);
+    var status = node("span", "wb-pane__status", t("wbStarting"));
+    var spacer = node("span", "wb-pane__spacer");
+    // 上传 / 下载按钮（阶段 4）：文件只在 DBX 宿主里可交互。
+    var upload = node("button", "wb-pane__tool", "⬆");
+    upload.type = "button";
+    upload.title = t("wbUpload");
+    upload.setAttribute("aria-label", t("wbUpload"));
+    upload.addEventListener("click", function (event) {
+      event.stopPropagation();
+      wbUploadFor(pane.id);
+    });
+    var downloads = node("button", "wb-pane__tool", "⬇");
+    downloads.type = "button";
+    downloads.title = t("wbDownloads");
+    downloads.setAttribute("aria-label", t("wbDownloads"));
+    downloads.addEventListener("click", function (event) {
+      event.stopPropagation();
+      wbOpenDownloads(pane.id);
+    });
+    var close = node("button", "wb-pane__close", "✕");
+    close.type = "button";
+    close.setAttribute("aria-label", t("wbClose"));
+    close.addEventListener("click", function (event) {
+      event.stopPropagation();
+      wbClosePane(pane.id);
+    });
+    head.appendChild(title);
+    head.appendChild(status);
+    head.appendChild(spacer);
+    head.appendChild(upload);
+    head.appendChild(downloads);
+    head.appendChild(close);
+    pane.uploadBtn = upload;
+    pane.downloadsBtn = downloads;
+
+    var view = node("div", "wb-pane__view");
+    var canvas = node("canvas", "wb-pane__canvas");
+    canvas.width = 1280;
+    canvas.height = 900;
+    var ime = node("textarea", "wb-pane__ime");
+    ime.setAttribute("aria-hidden", "true");
+    ime.tabIndex = -1;
+    ime.autocomplete = "off";
+    ime.setAttribute("autocorrect", "off");
+    ime.setAttribute("autocapitalize", "off");
+    ime.spellcheck = false;
+
+    view.appendChild(canvas);
+    view.appendChild(ime);
+    root.appendChild(head);
+    root.appendChild(view);
+    // 点标题栏/画面都把该 pane 设为活动。
+    root.addEventListener("mousedown", function () { wbFocus(pane.id); });
+
+    pane.root = root;
+    pane.canvas = canvas;
+    pane.ime = ime;
+    pane.titleEl = title;
+    pane.statusEl = status;
+    wbWirePaneInput(pane);
+    return root;
+  }
+
+  /** 重画整个 pane 栅格（保持顺序）。 */
+  function wbRenderPanes() {
+    if (!el.wbGrid) return;
+    clear(el.wbGrid);
+    wbOrder.forEach(function (id) {
+      var pane = wbPanes[id];
+      if (pane) el.wbGrid.appendChild(pane.root);
+    });
+    wbOrder.forEach(function (id) {
+      var pane = wbPanes[id];
+      if (pane) pane.root.classList.toggle("wb-pane--active", id === wbActiveId);
+    });
+    wbRenderChrome();
+  }
+
+  /** 打开一个模型的 pane（已开则聚焦）。 */
+  function wbOpen(modelId) {
+    var model = wbModelById(modelId);
+    if (!model) return Promise.resolve(false);
+    if (wbPanes[modelId]) { wbFocus(modelId); return Promise.resolve(true); }
+    if (!isHttpUrl(model.url)) {
+      showStatusNotice(t("modelUrlInvalid"));
+      return Promise.resolve(false);
+    }
+    var pane = {
+      id: modelId,
+      name: model.name,
+      url: model.url,
+      title: model.name,
+      width: 1280,
+      height: 900,
+      lastSeq: 0,
+      pendingFrame: null,
+      frameBusy: false,
+      ready: false,
+      worker: null,
+      workerReady: false,
+      workerFailed: false,
+      workerBusy: false,
+      input: { composing: false, pressed: false, moveTimer: 0 }
+    };
+    wbPanes[modelId] = pane;
+    wbOrder.push(modelId);
+    wbBuildPaneDom(pane);
+    wbEnsureVisible(true);
+    wbRenderPanes();
+    wbFocus(modelId);
+
+    // 视口取该 pane 画布的 CSS 尺寸（渲染后再量，让 rect 有值）。
+    var rect = pane.canvas.getBoundingClientRect();
+    var viewport = {
+      width: Math.round(clamp(rect.width || 640, 320, 1920)),
+      height: Math.round(clamp(rect.height || 480, 240, 1200)),
+      dpr: Math.round(clamp(window.devicePixelRatio || 1, 1, 2) * 100) / 100
+    };
+    var openParams = {
+      sessionId: modelId,
+      url: pane.url,
+      viewportWidth: viewport.width,
+      viewportHeight: viewport.height,
+      deviceScaleFactor: viewport.dpr
+    };
+    pane.width = viewport.width;
+    pane.height = viewport.height;
+    wbSetPaneStatus(pane, t("wbStarting"), false);
+    // 记一次访问（fire-and-forget，失败不影响打开）。
+    invoke("webview/visitRecord", { modelId: modelId }, 8000).catch(function () { return null; });
+    loadModels(); // 刷新访问记录列表
+
+    return invoke("webview/liveOpen", openParams, 45000).then(function (result) {
+      if (result && result.viewport) {
+        pane.width = num(result.viewport.width, pane.width);
+        pane.height = num(result.viewport.height, pane.height);
+      }
+      if (!pane.ready) wbSetPaneStatus(pane, t("wbReady"), false);
+      return true;
+    }).catch(function (error) {
+      wbSetPaneStatus(pane, t("wbError"), true);
+      pane.error = humanError(error);
+      showStatusNotice(pane.error);
+      return false;
+    });
+  }
+
+  /** 关闭一个 pane（只关会话，不删模型配置）。 */
+  function wbClosePane(modelId) {
+    var pane = wbPanes[modelId];
+    if (!pane) return;
+    if (pane.worker) {
+      try { pane.worker.terminate(); } catch (error) { /* noop */ }
+      pane.worker = null;
+    }
+    delete wbPanes[modelId];
+    var idx = wbOrder.indexOf(modelId);
+    if (idx >= 0) wbOrder.splice(idx, 1);
+    invoke("webview/liveClose", { sessionId: modelId }, 8000).catch(function () { return null; });
+    if (wbActiveId === modelId) {
+      wbActiveId = wbOrder.length ? wbOrder[wbOrder.length - 1] : "";
+    }
+    if (wbActiveId) applyWbFocusState();
+    wbRenderPanes();
+    if (!wbOrder.length) wbEnsureVisible(false);
+  }
+
+  /** 聚焦某 pane：恢复它、暂停其余，控制并发 CPU/带宽。 */
+  function wbFocus(modelId) {
+    if (!wbPanes[modelId]) return;
+    wbActiveId = modelId;
+    applyWbFocusState();
+    wbRenderPanes();
+    invoke("webview/liveResume", { sessionId: modelId }, 8000).catch(function () { return null; });
+    wbOrder.forEach(function (id) {
+      if (id !== modelId) {
+        invoke("webview/livePause", { sessionId: id }, 8000).catch(function () { return null; });
+      }
+    });
+  }
+
+  function applyWbFocusState() {
+    wbOrder.forEach(function (id) {
+      var pane = wbPanes[id];
+      if (pane && pane.root) pane.root.classList.toggle("wb-pane--active", id === wbActiveId);
+    });
+  }
+
+  /** 某个 pane 的画布坐标 → 页面视口坐标。 */
+  function wbPanePoint(pane, event) {
+    if (!pane.canvas) return null;
+    var rect = pane.canvas.getBoundingClientRect();
+    if (!rect.width || !rect.height) return null;
+    var scale = Math.min(rect.width / pane.width, rect.height / pane.height);
+    if (!scale) return null;
+    var left = rect.left + (rect.width - pane.width * scale) / 2;
+    var top = rect.top + (rect.height - pane.height * scale) / 2;
+    return {
+      x: clamp((event.clientX - left) / scale, 0, pane.width),
+      y: clamp((event.clientY - top) / scale, 0, pane.height)
+    };
+  }
+
+  function wbPostInput(modelId, event) {
+    return invoke("webview/liveInput", { sessionId: modelId, event: event }, 6000).catch(function () {
+      return null;
+    });
+  }
+
+  function wbSendMouse(pane, type, point, event) {
+    if (!point) return;
+    wbPostInput(pane.id, {
+      kind: "mouse",
+      type: type,
+      x: Math.round(point.x),
+      y: Math.round(point.y),
+      button: type === "moved" ? "none" : "left",
+      clickCount: clamp(num(event && event.detail, 1), 1, 3),
+      modifiers: event ? liveModifiers(event) : 0
+    });
+  }
+
+  function wbSendText(pane, text) {
+    if (!text) return;
+    wbPostInput(pane.id, { kind: "text", text: text });
+  }
+
+  function wbSendKey(pane, event) {
+    var key = event.key;
+    var payload = {
+      kind: "key",
+      key: key,
+      code: event.code || key,
+      windowsVirtualKeyCode: event.keyCode || 0,
+      modifiers: liveModifiers(event)
+    };
+    if (key === "Enter") payload.text = "\r";
+    wbPostInput(pane.id, assign({ type: "keyDown" }, payload));
+    wbPostInput(pane.id, assign({ type: "keyUp" }, payload));
+  }
+
+  /** 给单个 pane 绑输入：鼠标/滚轮 + 隐藏输入法（键盘与中文）。 */
+  function wbWirePaneInput(pane) {
+    var view = pane.root.querySelector(".wb-pane__view");
+    if (!view) return;
+    view.addEventListener("mousedown", function (event) {
+      if (event.button !== 0) return;
+      event.preventDefault();
+      wbFocus(pane.id);
+      pane.input.pressed = true;
+      wbSendMouse(pane, "pressed", wbPanePoint(pane, event), event);
+      wbFocusPaneIme(pane, event);
+    });
+    view.addEventListener("mousemove", function (event) {
+      if (pane.input.moveTimer) return;
+      var point = wbPanePoint(pane, event);
+      pane.input.moveTimer = requestAnimationFrame(function () {
+        pane.input.moveTimer = 0;
+        if (!pane.ready) return;
+        wbSendMouse(pane, "moved", point, event);
+      });
+    });
+    view.addEventListener("wheel", function (event) {
+      var point = wbPanePoint(pane, event);
+      if (!point) return;
+      event.preventDefault();
+      wbPostInput(pane.id, {
+        kind: "mouse", type: "wheel",
+        x: Math.round(point.x), y: Math.round(point.y),
+        deltaX: Math.round(event.deltaX), deltaY: Math.round(event.deltaY),
+        modifiers: liveModifiers(event)
+      });
+    }, { passive: false });
+    view.addEventListener("contextmenu", function (event) { event.preventDefault(); });
+    window.addEventListener("mouseup", function (event) {
+      if (event.button !== 0 || !pane.input.pressed) return;
+      pane.input.pressed = false;
+      wbSendMouse(pane, "released", wbPanePoint(pane, event), event);
+    }, true);
+
+    var ime = pane.ime;
+    if (!ime) return;
+    ime.addEventListener("keydown", function (event) {
+      if (event.isComposing || event.keyCode === 229) return;
+      var key = event.key;
+      if (key === "Escape" || key === "Tab") return;
+      var special = ["Enter", "Backspace", "Tab", "Delete", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Home", "End", "PageUp", "PageDown"];
+      var mod = event.ctrlKey || event.metaKey;
+      if (mod && /^[acvxzy]$/i.test(key)) {
+        if (key.toLowerCase() === "v") return; // 粘贴走 paste
+        event.preventDefault();
+        wbSendKey(pane, event);
+        return;
+      }
+      if (special.indexOf(key) !== -1) {
+        event.preventDefault();
+        wbSendKey(pane, event);
+      }
+    });
+    ime.addEventListener("input", function () {
+      if (pane.input.composing) return;
+      var text = ime.value;
+      if (!text) return;
+      ime.value = "";
+      wbSendText(pane, text);
+    });
+    ime.addEventListener("compositionstart", function () { pane.input.composing = true; });
+    ime.addEventListener("compositionend", function (event) {
+      pane.input.composing = false;
+      var text = event.data || ime.value;
+      ime.value = "";
+      if (text) wbSendText(pane, text);
+    });
+    ime.addEventListener("paste", function (event) {
+      var clipboard = event.clipboardData || window.clipboardData;
+      var text = clipboard ? clipboard.getData("text") : "";
+      event.preventDefault();
+      if (text) wbSendText(pane, text);
+    });
+  }
+
+  function wbFocusPaneIme(pane, event) {
+    if (!pane.ime || !pane.canvas) return;
+    var rect = pane.canvas.getBoundingClientRect();
+    pane.ime.style.left = Math.max(0, Math.min(rect.width - 2, event.clientX - rect.left)) + "px";
+    pane.ime.style.top = Math.max(0, Math.min(rect.height - 2, event.clientY - rect.top)) + "px";
+    try { pane.ime.focus({ preventScroll: true }); }
+    catch (error) { pane.ime.focus(); }
+  }
+
+  function wireWorkbench() {
+    if (el.btnWbModels) {
+      el.btnWbModels.addEventListener("click", function () {
+        if (el.btnStyle) el.btnStyle.click();
+        setDrawer(true);
+        setDrawerTab("models");
+      });
+    }
+    // 一键群发栏（阶段 3）
+    if (el.btnWbBatch) {
+      el.btnWbBatch.addEventListener("click", function () {
+        if (!el.wbBatch) return;
+        var show = el.wbBatch.hidden;
+        el.wbBatch.hidden = !show;
+        el.btnWbBatch.classList.toggle("wb__btn--active", show);
+        if (show) renderBatchPanel();
+      });
+    }
+    if (el.batchSelectAll) {
+      el.batchSelectAll.addEventListener("click", function () { batchSelectAll(true); });
+    }
+    if (el.batchSelectNone) {
+      el.batchSelectNone.addEventListener("click", function () { batchSelectAll(false); });
+    }
+    if (el.btnBatchSend) {
+      el.btnBatchSend.addEventListener("click", batchSend);
+    }
+    // 下载弹层（阶段 4）
+    if (el.btnDlClose) el.btnDlClose.addEventListener("click", wbCloseDownloads);
+    if (el.btnDlRefresh) {
+      el.btnDlRefresh.addEventListener("click", function () {
+        if (dlCurrentSession) loadDownloads(dlCurrentSession);
+      });
+    }
+    if (el.dlgDownloads) {
+      el.dlgDownloads.addEventListener("click", function (event) {
+        if (event.target === el.dlgDownloads) wbCloseDownloads();
+      });
+    }
+  }
+
+  /** 切换群发栏文案（applyCopy 里调用）。 */
+  function syncBatchCopy() {
+    setText($("wbBatchBtnText"), t("wbBatch"));
+    setText($("batchTitle"), t("batchTitle"));
+    setText($("batchHint"), t("batchHint"));
+    setText($("batchSelectAllText"), t("batchSelectAll"));
+    setText($("batchSelectNoneText"), t("batchSelectNone"));
+    setText($("batchSendText"), t("batchSending"));
+    if (el.batchText && !el.batchText.value) el.batchText.placeholder = t("batchPlaceholder");
+    if (!state.batchSending) setText($("batchSendText"), t("batchSend"));
+    // 下载弹层文案
+    setText($("dlRefreshText"), t("dlRefresh"));
+    if (el.dlgDownloads && !el.dlgDownloads.hidden && dlCurrentSession) {
+      setText($("dlgDownloadsTitle"), t("dlTitle") + " · " + modelNameById(dlCurrentSession));
+    }
+  }
+
+  /** 群发栏展开时渲染模型勾选列表：默认选中已打开的 pane。 */
+  function renderBatchPanel() {
+    setText($("batchTitle"), t("batchTitle"));
+    setText($("batchHint"), t("batchHint"));
+    setText($("batchSelectAllText"), t("batchSelectAll"));
+    setText($("batchSelectNoneText"), t("batchSelectNone"));
+    setText($("batchSendText"), state.batchSending ? t("batchSending") : t("batchSend"));
+    if (el.batchText) el.batchText.placeholder = t("batchPlaceholder");
+    var host = el.batchModelList;
+    if (!host) return;
+    clear(host);
+    if (!state.models.length) {
+      host.appendChild(node("div", "batch__hint", t("batchEmpty")));
+      return;
+    }
+    // 首次展开：默认选已打开的 pane；之后尊重用户上次的选择。
+    var initialized = Object.keys(state.batchSelected).length > 0;
+    state.models.forEach(function (model) {
+      if (!initialized) state.batchSelected[model.id] = !!wbPanes[model.id];
+      var open = !!wbPanes[model.id];
+      var checked = !!state.batchSelected[model.id];
+      var label = node("label", "batch__chip" + (checked ? " batch__chip--on" : "") + (open ? "" : " batch__chip--off"));
+      var input = document.createElement("input");
+      input.type = "checkbox";
+      input.checked = checked;
+      input.dataset.modelId = model.id;
+      input.addEventListener("change", function () {
+        state.batchSelected[model.id] = input.checked;
+        label.classList.toggle("batch__chip--on", input.checked);
+      });
+      label.appendChild(input);
+      label.appendChild(node("span", "", model.name + (open ? "" : " · ⧉")));
+      label.title = open ? model.name : t("batchNeedsOpen");
+      host.appendChild(label);
+    });
+  }
+
+  function batchSelectAll(selected) {
+    state.models.forEach(function (model) { state.batchSelected[model.id] = selected; });
+    renderBatchPanel();
+  }
+
+  function batchSelectedIds() {
+    return state.models
+      .filter(function (model) { return !!state.batchSelected[model.id]; })
+      .map(function (model) { return model.id; });
+  }
+
+  /** 执行群发：调用后端 batchSend，逐模型展示结果。 */
+  function batchSend() {
+    if (state.batchSending) return;
+    var text = el.batchText ? el.batchText.value.trim() : "";
+    var ids = batchSelectedIds();
+    if (!ids.length) { showStatusNotice(t("batchNoSelection")); return; }
+    if (!text) { showStatusNotice(t("batchPlaceholder")); return; }
+    state.batchSending = true;
+    if (el.btnBatchSend) { el.btnBatchSend.disabled = true; setText($("batchSendText"), t("batchSending")); }
+    if (el.batchResults) clear(el.batchResults);
+    invoke("webview/batchSend", { text: text, sessionIds: ids }, 60000).then(function (result) {
+      renderBatchResults(result, ids);
+    }).catch(function (error) {
+      if (el.batchResults) {
+        clear(el.batchResults);
+        el.batchResults.appendChild(node("span", "batch__result batch__result--err", humanError(error)));
+      }
+    }).then(function () {
+      state.batchSending = false;
+      if (el.btnBatchSend) { el.btnBatchSend.disabled = false; setText($("batchSendText"), t("batchSend")); }
+    });
+  }
+
+  /* ── 文件上传 / 下载（阶段 4） ─────────────────────────────────────────
+   * 方向：UI → sidecar → WebView2。UI 通过宿主 fileTransfer 选文件/读字节，
+   * 分块 base64 经 webview/liveUpload 落盘；末块由后端 CDP 挂到 input[type=file]。
+   * 下载反向：WebView2 落到 sidecar 下载目录 → liveDownloads 列出 →
+   * liveDownloadRead 分块读回 → 宿主 saveFile 写到用户选的路径。
+   * manifest 无需新增权限：pick/saveFile 免门控（已核实宿主源码）。
+   * ─────────────────────────────────────────────────────────────────────── */
+  var FILE_CHUNK = 256 * 1024;
+  var DOWNLOAD_CHUNK = 256 * 1024;
+
+  function bytesToB64(bytes) {
+    var binary = "";
+    var step = 0x8000;
+    for (var i = 0; i < bytes.length; i += step) {
+      binary += String.fromCharCode.apply(null, bytes.subarray(i, i + step));
+    }
+    return btoa(binary);
+  }
+
+  function fileApi() {
+    if (!plugin) return null;
+    return {
+      pick: typeof plugin.fileTransfer === "object" && plugin && typeof plugin.fileTransfer.pick === "function" ? plugin.fileTransfer.pick : null,
+      read: typeof plugin.fileTransfer === "object" && plugin && typeof plugin.fileTransfer.read === "function" ? plugin.fileTransfer.read : null,
+      save: typeof plugin.saveFile === "function" ? plugin.saveFile : null
+    };
+  }
+
+  /** 给某个 pane 上传文件：选文件后分块送进会话。 */
+  function wbUploadFor(modelId) {
+    var api = fileApi();
+    if (!api || !api.pick || !api.read) { showStatusNotice(t("fileNoPicker")); return; }
+    var pane = wbPanes[modelId];
+    if (!pane) return;
+    Promise.resolve(api.pick({ multiple: false })).then(function (files) {
+      if (!files || !files.length) return null;
+      var file = files[0];
+      return uploadChunks(modelId, file, api);
+    }).then(function (result) {
+      if (!result) return;
+      if (result.warning) {
+        wbSetPaneStatus(pane, t("fileUploaded") + " · " + result.warning, false);
+      } else if (result.attached) {
+        wbSetPaneStatus(pane, t("fileUploaded"), false);
+      }
+    }).catch(function (error) {
+      wbSetPaneStatus(pane, t("fileUploadFail"), true);
+      showStatusNotice(t("fileUploadFail") + "：" + humanError(error));
+    });
+  }
+
+  function uploadChunks(modelId, file, api) {
+    // 递归分块发送；空文件也发一个 final 空块触发挂载。
+    return uploadLoop(modelId, file, api, num(file.size, 0));
+  }
+
+  function uploadLoop(modelId, file, api, total) {
+    var offset = 0;
+    function step() {
+      var isFinal = total === 0 || offset >= total;
+      if (isFinal) {
+        return invoke("webview/liveUpload", {
+          sessionId: modelId, fileName: file.name,
+          mimeType: file.contentType || "application/octet-stream",
+          offset: offset, chunkB64: "", final: true
+        }, 30000);
+      }
+      var length = Math.min(FILE_CHUNK, total - offset);
+      return Promise.resolve(api.read(file.handleId, offset, length)).then(function (chunk) {
+        var b64 = chunk && typeof chunk.dataBase64 === "string" ? chunk.dataBase64 : "";
+        var eof = !!(chunk && chunk.eof) || (offset + length >= total);
+        return invoke("webview/liveUpload", {
+          sessionId: modelId, fileName: file.name,
+          mimeType: file.contentType || "application/octet-stream",
+          offset: offset, chunkB64: b64, final: eof
+        }, 30000).then(function (result) {
+          if (eof) return result;
+          offset += length;
+          return step();
+        });
+      });
+    }
+    return step();
+  }
+
+  var dlCurrentSession = "";
+
+  function wbOpenDownloads(modelId) {
+    if (!el.dlgDownloads) return;
+    dlCurrentSession = modelId;
+    var name = modelNameById(modelId);
+    setText($("dlgDownloadsTitle"), t("dlTitle") + " · " + name);
+    setText($("dlRefreshText"), t("dlRefresh"));
+    el.dlgDownloads.hidden = false;
+    loadDownloads(modelId);
+  }
+
+  function wbCloseDownloads() {
+    if (el.dlgDownloads) el.dlgDownloads.hidden = true;
+    dlCurrentSession = "";
+  }
+
+  function loadDownloads(modelId) {
+    var host = el.dlgDownloadList;
+    if (!host) return;
+    clear(host);
+    invoke("webview/liveDownloads", { sessionId: modelId }, 15000).then(function (result) {
+      var files = (result && result.files) || [];
+      if (!files.length) { host.appendChild(node("div", "dlg__empty", t("dlEmpty"))); return; }
+      files.forEach(function (file) { host.appendChild(buildDownloadItem(modelId, file)); });
+    }).catch(function (error) {
+      host.appendChild(node("div", "dlg__empty", humanError(error)));
+    });
+  }
+
+  function buildDownloadItem(modelId, file) {
+    var row = node("div", "dlg__item");
+    row.appendChild(node("span", "dlg__item-name", file.name));
+    row.appendChild(node("span", "dlg__item-meta", t("dlSize").replace("{n}", String(file.size || 0))));
+    var save = node("button", "dlg__item-save", t("dlSave"));
+    save.type = "button";
+    save.addEventListener("click", function () { saveDownload(modelId, file, save); });
+    row.appendChild(save);
+    return row;
+  }
+
+  /** 分块读回一个下载文件，再交给宿主 saveFile 写到用户选的路径。 */
+  function saveDownload(modelId, file, button) {
+    var api = fileApi();
+    if (!api || !api.save) { showStatusNotice(t("fileNoHost")); return; }
+    setText(button, t("dlSaving"));
+    button.disabled = true;
+    var offset = 0;
+    var parts = [];
+    function step() {
+      return invoke("webview/liveDownloadRead", {
+        sessionId: modelId, fileName: file.name, offset: offset, maxBytes: DOWNLOAD_CHUNK
+      }, 30000).then(function (result) {
+        if (!result || typeof result.dataB64 !== "string") throw new Error("empty chunk");
+        parts.push(result.dataB64);
+        var at = num(result.offset, offset);
+        var read = num(result.read, Math.floor(result.dataB64.length * 3 / 4));
+        var total = num(result.total, 0);
+        if (result.done || read <= 0) return { total: total, b64: parts.join("") };
+        offset = at + read;
+        return step();
+      });
+    }
+    step().then(function (assembled) {
+      return Promise.resolve(api.save({ fileName: file.name }, assembled.b64)).then(function (result) {
+        var path = result && result.path ? result.path : file.name;
+        showStatusNotice(t("dlSaved").replace("{path}", path));
+        setText(button, t("dlSave"));
+        button.disabled = false;
+      });
+    }).catch(function (error) {
+      showStatusNotice(t("dlFail") + "：" + humanError(error));
+      setText(button, t("dlSave"));
+      button.disabled = false;
+    });
+  }
+
+  function renderBatchResults(result, ids) {
+    var host = el.batchResults;
+    if (!host) return;
+    clear(host);
+    var results = (result && result.results) || [];
+    var nameById = {};
+    state.models.forEach(function (model) { nameById[model.id] = model.name; });
+    results.forEach(function (item) {
+      var ok = !!(item && item.ok);
+      var name = nameById[item && item.sessionId] || (item && item.sessionId) || "?";
+      var label = ok ? t("batchOk") : t("batchFail");
+      var detail = item && item.error ? " · " + item.error : "";
+      host.appendChild(node("span", "batch__result batch__result--" + (ok ? "ok" : "err"), name + " " + label + detail));
+    });
+    var total = (result && result.total) || ids.length;
+    var okCount = (result && result.okCount) || 0;
+    host.appendChild(node("span", "batch__summary", t("batchResult").replace("{total}", String(total)).replace("{ok}", String(okCount))));
   }
 
   /* ═══════════════════════════════════════════════════════════════════════
@@ -6770,7 +7983,14 @@
 
   /** 二进制事件：`{ channel, data }`，data 是原始字节。 */
   function onLiveBinary(payload) {
-    if (!payload || payload.channel !== "webview/liveFrame") return;
+    if (!payload || typeof payload.channel !== "string") return;
+    // 多 pane 会话帧：`webview/liveFrame:<modelId>` → 工作台对应画布。
+    if (payload.channel.indexOf("webview/liveFrame:") === 0) {
+      wbOnBinary(payload);
+      return;
+    }
+    // 旧单实例实时页面帧。
+    if (payload.channel !== "webview/liveFrame") return;
     var raw = payload.data;
     var view;
     if (raw instanceof Uint8Array) view = raw;
@@ -7059,6 +8279,14 @@
     }
   }
 
+  /** 某个会话下载完成：若下载弹层正开着且属于该会话，自动刷新列表。 */
+  function onLiveDownloaded(payload) {
+    if (!payload || !payload.sessionId) return;
+    if (el.dlgDownloads && !el.dlgDownloads.hidden && dlCurrentSession === payload.sessionId) {
+      loadDownloads(payload.sessionId);
+    }
+  }
+
   function wireLiveEvents() {
     // 二进制通道：新宿主走这里（manifest 声明了 host.binary + stdio-framed）。
     if (plugin && typeof plugin.onBinary === "function") {
@@ -7078,8 +8306,16 @@
         var method = event && event.method ? event.method : "";
         var payload = event && event.params ? event.params : {};
         if (method === "webview/liveFrame") onLiveFrame(payload);
-        else if (method === "webview/liveState") onLiveState(payload);
-        else if (method === "webview/liveError") onLiveError(payload);
+        else if (method === "webview/liveState") {
+          // 带 sessionId 的状态属于工作台 pane，否则是旧单实例。
+          if (payload && payload.sessionId) wbOnState(payload);
+          else onLiveState(payload);
+        } else if (method === "webview/liveError") {
+          if (payload && payload.sessionId) wbOnError(payload);
+          else onLiveError(payload);
+        } else if (method === "webview/liveDownloaded") {
+          onLiveDownloaded(payload);
+        }
       });
     } catch (error) {
       if (typeof console !== "undefined" && console.warn) {
@@ -7126,9 +8362,9 @@
     if (el.scrim) el.scrim.hidden = !(!(window.innerWidth > 960) && (open || isSidebarVisible()));
   }
 
-  /** 切换设置抽屉里的页签：样式 / 浏览器窗口 / 设置。 */
+  /** 切换设置抽屉里的页签：样式 / 浏览器窗口 / 大模型 / 设置。 */
   function setDrawerTab(name) {
-    var panes = { style: el.paneStyle, browser: el.paneBrowser, general: el.paneGeneral };
+    var panes = { style: el.paneStyle, browser: el.paneBrowser, models: el.paneModels, general: el.paneGeneral };
     if (!panes[name]) name = "style";
     state.drawerTab = name;
     Object.keys(panes).forEach(function (key) {
@@ -7148,6 +8384,7 @@
     }
     if (name === "browser") syncBrowserPanel();
     if (name === "style") syncCssValidation();
+    if (name === "models") renderModelPanel();
     // 切到「设置」页签时跑一次自检：这几项都是"现在的状态"，不该是打开时的快照。
     if (name === "general") renderDiagnostics();
   }
@@ -7218,6 +8455,25 @@
       liveHost: $("liveHost"),
       liveFrame: $("liveFrame"),
       liveCanvas: $("liveCanvas"),
+      /* 大模型工作台多 pane */
+      paneHost: $("paneHost"),
+      wbGrid: $("wbGrid"),
+      wbEmpty: $("wbEmpty"),
+      btnWbModels: $("btnWbModels"),
+      /* 一键群发栏（阶段 3） */
+      btnWbBatch: $("btnWbBatch"),
+      wbBatch: $("wbBatch"),
+      batchModelList: $("batchModelList"),
+      batchText: $("batchText"),
+      btnBatchSend: $("btnBatchSend"),
+      batchResults: $("batchResults"),
+      batchSelectAll: $("batchSelectAll"),
+      batchSelectNone: $("batchSelectNone"),
+      /* 下载管理弹层（阶段 4） */
+      dlgDownloads: $("dlgDownloads"),
+      dlgDownloadList: $("dlgDownloadList"),
+      btnDlClose: $("btnDlClose"),
+      btnDlRefresh: $("btnDlRefresh"),
       liveOverlay: $("liveOverlay"),
       liveSpinner: $("liveSpinner"),
       liveTitle: $("liveTitle"),
@@ -7371,10 +8627,22 @@
       drawerTabs: $("drawerTabs"),
       paneStyle: $("paneStyle"),
       paneBrowser: $("paneBrowser"),
+      paneModels: $("paneModels"),
       paneGeneral: $("paneGeneral"),
       tabStyleText: $("tabStyleText"),
       tabBrowserText: $("tabBrowserText"),
+      tabModelsText: $("tabModelsText"),
       tabGeneralText: $("tabGeneralText"),
+      /* 大模型管理面板 */
+      modelEditId: $("modelEditId"),
+      modelName: $("modelName"),
+      modelUrl: $("modelUrl"),
+      modelEnabled: $("modelEnabled"),
+      btnModelSave: $("btnModelSave"),
+      btnModelCancel: $("btnModelCancel"),
+      modelFormStatus: $("modelFormStatus"),
+      modelList: $("modelList"),
+      modelVisitList: $("modelVisitList"),
       coverThemeSegment: $("coverThemeSegment"),
       coverHotkeyReset: $("coverHotkeyReset"),
       coverHotkeyInput: $("coverHotkeyInput")
@@ -7654,6 +8922,14 @@
     document.addEventListener("keydown", function (event) {
       // 录制热键时不要触发任何快捷键。
       if (disguise.recording) return;
+
+      // 下载弹层打开时，Escape 先关弹层（优先于全局热键，避免误切伪装界面）。
+      if (event.key === "Escape" && el.dlgDownloads && !el.dlgDownloads.hidden) {
+        event.preventDefault();
+        event.stopPropagation();
+        wbCloseDownloads();
+        return;
+      }
 
       // 伪装界面 / 阅读界面切换：默认 Escape，可在设置里改。
       // 放在最前面，且不受输入框限制——这个键就是用来“随时切走”的。
@@ -8324,7 +9600,7 @@
     setText($("optTradToSimpText"), t("optTradToSimp"));
     setText(
       $("optVersion"),
-      "com.dbx.webview " + (disguise.version || "?") + (tradToSimp.available ? "" : " · 未加载繁简表")
+      "com.xingxi.llm-workbench " + (disguise.version || "?") + (tradToSimp.available ? "" : " · 未加载繁简表")
     );
   }
 
@@ -8837,12 +10113,15 @@
     wireToolbar();
     wireSidebar();
     wireStylePanel();
+    wireModelsPanel();
     wireKeyboard();
     wireWindow();
     wireCover();
     wireCoverFocus();
     wireLiveView();
     wireLiveEvents();
+    wireWorkbench();
+    wbRenderChrome();
     applyReaderStyle(null);
     // 默认先显示伪装界面；用户可以在设置里关掉。
     setCover(disguise.onStart !== false);
@@ -8865,7 +10144,7 @@
       refreshActiveTab(true);
     }
 
-    return Promise.all([loadPresets(), probeBackend(), probeBrowser()]).then(function (results) {
+    return Promise.all([loadPresets(), probeBackend(), probeBrowser(), loadModels()]).then(function (results) {
       var backendOk = results[1];
       renderPresets();
       syncToolbar();

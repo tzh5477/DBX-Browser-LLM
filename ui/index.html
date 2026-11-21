@@ -257,6 +257,54 @@
             <!-- 隐藏的可编辑区：承接键盘与中文输入法，再把文字通过 CDP 送进页面。 -->
             <textarea class="live__ime" id="liveIme" aria-hidden="true" tabindex="-1" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
           </div>
+
+          <!-- 官网大模型工作台（阶段 2）：一个模型一个 pane，各自一个 WebView2 会话。
+               每个 pane 的画布、worker、输入、登录态都独立；帧按会话通道分派。 -->
+          <div class="wb" id="paneHost" hidden>
+            <div class="wb__bar" id="wbBar">
+              <span class="wb__title" id="wbTitle">大模型工作台</span>
+              <span class="wb__count" id="wbCount"></span>
+              <span class="wb__spacer"></span>
+              <button class="wb__btn" id="btnWbBatch" type="button"><span id="wbBatchBtnText">批量群发</span></button>
+              <button class="wb__btn" id="btnWbModels" type="button"><span id="wbModelsText">管理模型</span></button>
+            </div>
+            <!-- 一键群发栏（阶段 3）：勾选模型 + 文本 + 发送，逐模型展示结果 -->
+            <div class="batch" id="wbBatch" hidden>
+              <div class="batch__head">
+                <span class="batch__title" id="batchTitle">一键群发到多个模型</span>
+                <span class="batch__spacer"></span>
+                <button class="batch__mini" id="batchSelectAll" type="button"><span id="batchSelectAllText">全选</span></button>
+                <button class="batch__mini" id="batchSelectNone" type="button"><span id="batchSelectNoneText">全不选</span></button>
+              </div>
+              <div class="batch__hint" id="batchHint">勾选模型并输入文本，将同时发送到各模型的输入框。</div>
+              <div class="batch__models" id="batchModelList"></div>
+              <div class="batch__compose">
+                <textarea class="batch__input" id="batchText" rows="3" placeholder="输入要群发的内容…"></textarea>
+                <button class="batch__send" id="btnBatchSend" type="button"><span id="batchSendText">发送</span></button>
+              </div>
+              <div class="batch__results" id="batchResults"></div>
+            </div>
+            <div class="wb__grid" id="wbGrid"></div>
+            <div class="wb__empty" id="wbEmpty">还没有打开的模型。点「管理模型」添加，再在模型列表里点「打开」。</div>
+          </div>
+
+          <!-- 下载管理弹层（阶段 4）：列出某模型会话下载的文件，逐个保存到本地 -->
+          <div class="dlg" id="dlgDownloads" hidden>
+            <div class="dlg__card">
+              <div class="dlg__head">
+                <span class="dlg__title" id="dlgDownloadsTitle">下载文件</span>
+                <button class="dlg__close" id="btnDlClose" type="button" aria-label="关闭">✕</button>
+              </div>
+              <div class="dlg__body">
+                <div class="dlg__tools">
+                  <span class="dlg__hint" id="dlgDownloadsHint"></span>
+                  <span class="dlg__spacer"></span>
+                  <button class="dlg__mini" id="btnDlRefresh" type="button"><span id="dlRefreshText">刷新</span></button>
+                </div>
+                <div class="dlg__list" id="dlgDownloadList"></div>
+              </div>
+            </div>
+          </div>
         </main>
 
         <!-- ── settings drawer: 样式 / 浏览器窗口 / 设置 ─────────────────────── -->
@@ -272,6 +320,9 @@
             </button>
             <button class="dr__tab" id="tabBrowser" type="button" role="tab" data-drawer-tab="browser" aria-selected="false">
               <span aria-hidden="true">◎</span><span id="tabBrowserText">浏览器窗口</span>
+            </button>
+            <button class="dr__tab" id="tabModels" type="button" role="tab" data-drawer-tab="models" aria-selected="false">
+              <span aria-hidden="true">✦</span><span id="tabModelsText">大模型</span>
             </button>
             <button class="dr__tab" id="tabGeneral" type="button" role="tab" data-drawer-tab="general" aria-selected="false">
               <span aria-hidden="true">⚙</span><span id="tabGeneralText">设置</span>
@@ -403,7 +454,40 @@
             <div class="dr__history" id="browserHistoryList" hidden></div>
           </div>
 
-          <!-- ── 页签 3：设置 ───────────────────────────────────────────────── -->
+          <!-- ── 页签 3：大模型管理 ─────────────────────────────────────────── -->
+          <div class="dr__pane" id="paneModels" data-drawer-pane="models" hidden>
+            <p class="dr__hint" id="modelHint"></p>
+
+            <div class="dr__field">
+              <div class="dr__legend" id="modelFormLegend">新增 / 编辑模型</div>
+              <input type="hidden" id="modelEditId" />
+              <label class="dr__label" for="modelName" id="modelNameLabel">名称</label>
+              <input class="dr__input" id="modelName" type="text" maxlength="80" autocomplete="off" spellcheck="false" />
+              <label class="dr__label" for="modelUrl" id="modelUrlLabel">对话页网址</label>
+              <input class="dr__input" id="modelUrl" type="text" autocomplete="off" spellcheck="false" inputmode="url" />
+              <label class="dr__check">
+                <input type="checkbox" id="modelEnabled" checked />
+                <span id="modelEnabledText">启用</span>
+              </label>
+              <div class="dr__row">
+                <button class="dr__btn" id="btnModelSave" type="button"><span id="modelSaveText">保存模型</span></button>
+                <button class="dr__btn" id="btnModelCancel" type="button" hidden><span id="modelCancelText">取消编辑</span></button>
+              </div>
+              <p class="dr__hint" id="modelFormStatus" hidden></p>
+            </div>
+
+            <div class="dr__field">
+              <div class="dr__legend" id="modelListLegend">已配置的模型</div>
+              <div class="mdl" id="modelList"></div>
+            </div>
+
+            <div class="dr__field">
+              <div class="dr__legend" id="modelVisitLegend">最近访问</div>
+              <div class="mdl__visits" id="modelVisitList"></div>
+            </div>
+          </div>
+
+          <!-- ── 页签 4：设置 ───────────────────────────────────────────────── -->
           <div class="dr__pane" id="paneGeneral" data-drawer-pane="general" hidden>
             <div class="dr__field">
               <div class="dr__legend" id="themeLegend">外观</div>

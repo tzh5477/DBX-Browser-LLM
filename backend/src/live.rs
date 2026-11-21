@@ -19,7 +19,7 @@
 #![cfg(windows)]
 
 use std::cell::{Cell, RefCell};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::rc::Rc;
 use std::result::Result as StdResult;
 use std::sync::mpsc::{self, Receiver, Sender, SyncSender};
@@ -88,6 +88,12 @@ pub enum Command {
     },
     /// 调整 JPEG 质量：滚动时降质保帧率，停下再恢复清晰。
     Quality(i32),
+    /// 把已暂存的本地文件挂到页面的 input[type=file]（阶段 4 上传末块）。
+    /// path 是 sidecar 数据目录里的绝对路径；reply 把 CDP 结果送回 RPC。
+    AttachFile {
+        path: PathBuf,
+        reply: Sender<StdResult<(), String>>,
+    },
     Pause,
     Resume,
     Close,
@@ -100,12 +106,45 @@ pub struct LiveSession {
 }
 
 impl LiveSession {
+    /// 兼容旧的单实例调用：默认帧通道 `webview/liveFrame`，事件不带 sessionId。
+    /// 生产已改用 start_session；此处保留供 PoC / 未来单实例场景使用。
+    #[allow(dead_code)]
     pub fn start(profile: PathBuf) -> StdResult<Self, String> {
+        Self::start_impl(profile, None, String::new(), None)
+    }
+
+    /// 与 start 相同，但允许为帧二进制通道指定名字（默认 webview/liveFrame）。
+    /// 阶段 0 PoC 用它给两个会话分配不同通道名以验证隔离。
+    #[allow(dead_code)]
+    pub fn start_with_channel(
+        profile: PathBuf,
+        frame_channel: Option<String>,
+    ) -> StdResult<Self, String> {
+        Self::start_impl(profile, frame_channel, String::new(), None)
+    }
+
+    /// 多实例会话：帧通道按 sessionId 命名，state/error 事件也带 sessionId，
+    /// UI 才能把帧和状态路由到对应的 pane。downloads 是该会话的下载落盘目录。
+    pub fn start_session(
+        profile: PathBuf,
+        session_id: String,
+        downloads: PathBuf,
+    ) -> StdResult<Self, String> {
+        let channel = format!("webview/liveFrame:{session_id}");
+        Self::start_impl(profile, Some(channel), session_id, Some(downloads))
+    }
+
+    fn start_impl(
+        profile: PathBuf,
+        frame_channel: Option<String>,
+        session_id: String,
+        downloads: Option<PathBuf>,
+    ) -> StdResult<Self, String> {
         let (tx, rx) = mpsc::channel();
         let (ready_tx, ready_rx) = mpsc::channel();
         let join = thread::Builder::new()
             .name("dbx-webview2-live".into())
-            .spawn(move || run(profile, rx, ready_tx))
+            .spawn(move || run(profile, rx, ready_tx, frame_channel, session_id, downloads))
             .map_err(|error| format!("无法启动实时页面线程：{error}"))?;
         match ready_rx.recv_timeout(START_TIMEOUT) {
             Ok(Ok(hwnd)) => Ok(Self {
@@ -183,9 +222,11 @@ struct FrameSink {
 }
 
 impl FrameSink {
-    fn new(emitter: Arc<Mutex<Option<PluginEmitter>>>) -> Self {
+    fn new(emitter: Arc<Mutex<Option<PluginEmitter>>>, frame_channel: Option<String>) -> Self {
         // 二进制帧：省掉 base64（+33% 体积）与 JSON 编解码，这是实时画面帧率的
         // 主要瓶颈之一。需要 manifest 里的 `host.binary` 与 `stdio-framed` 传输。
+        // 通道名可配置：默认与 UI 现状兼容，多实例场景按会话隔离帧流。
+        let channel = frame_channel.unwrap_or_else(|| "webview/liveFrame".to_string());
         let (tx, rx) = mpsc::sync_channel::<Vec<u8>>(16);
         let _ = thread::Builder::new()
             .name("dbx-webview2-events".into())
@@ -193,7 +234,7 @@ impl FrameSink {
                 while let Ok(frame) = rx.recv() {
                     let emitter = emitter.lock().ok().and_then(|guard| guard.clone());
                     if let Some(emitter) = emitter {
-                        let _ = emitter.binary("webview/liveFrame", &frame);
+                        let _ = emitter.binary(&channel, &frame);
                     }
                 }
             });
@@ -206,6 +247,8 @@ struct Context {
     webview: ICoreWebView2,
     controller: ICoreWebView2Controller,
     emitter: Arc<Mutex<Option<PluginEmitter>>>,
+    /// 会话 ID（多实例）；单实例兼容路径为空字符串。
+    session_id: String,
     screencast: bool,
     /// 页面视口（CSS 像素）。由 UI 按面板尺寸设置。
     viewport: (i32, i32),
@@ -221,7 +264,14 @@ thread_local! {
     static CONTEXT: RefCell<Option<Context>> = const { RefCell::new(None) };
 }
 
-fn run(profile: PathBuf, rx: Receiver<Command>, ready: Sender<StdResult<isize, String>>) {
+fn run(
+    profile: PathBuf,
+    rx: Receiver<Command>,
+    ready: Sender<StdResult<isize, String>>,
+    frame_channel: Option<String>,
+    session_id: String,
+    downloads: Option<PathBuf>,
+) {
     unsafe {
         let _ = CoInitializeEx(None, COINIT_APARTMENTTHREADED);
         let _ = SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
@@ -269,7 +319,7 @@ fn run(profile: PathBuf, rx: Receiver<Command>, ready: Sender<StdResult<isize, S
         }
     };
 
-    if let Err(error) = configure(&webview, &controller) {
+    if let Err(error) = configure(&webview, &controller, downloads.as_deref()) {
         let _ = ready.send(Err(format!("初始化 WebView2 失败：{error}")));
         unsafe {
             let _ = controller.Close();
@@ -279,7 +329,7 @@ fn run(profile: PathBuf, rx: Receiver<Command>, ready: Sender<StdResult<isize, S
     }
 
     let emitter: Arc<Mutex<Option<PluginEmitter>>> = Arc::new(Mutex::new(None));
-    let sink = FrameSink::new(emitter.clone());
+    let sink = FrameSink::new(emitter.clone(), frame_channel);
     if let Err(error) = wire_events(&webview, &sink) {
         let _ = ready.send(Err(format!("订阅 WebView2 事件失败：{error}")));
         unsafe {
@@ -288,6 +338,8 @@ fn run(profile: PathBuf, rx: Receiver<Command>, ready: Sender<StdResult<isize, S
         }
         return;
     }
+    // 下载完成事件（尽力而为：不同 WebView2 版本支持 Browser/Page 域不同）。
+    wire_download_events(&webview, emitter.clone(), session_id.clone());
 
     CONTEXT.with(|context| {
         *context.borrow_mut() = Some(Context {
@@ -295,6 +347,7 @@ fn run(profile: PathBuf, rx: Receiver<Command>, ready: Sender<StdResult<isize, S
             webview,
             controller,
             emitter,
+            session_id,
             screencast: false,
             viewport: (VIEW_WIDTH, VIEW_HEIGHT),
             scale: 1.0,
@@ -335,7 +388,11 @@ fn run(profile: PathBuf, rx: Receiver<Command>, ready: Sender<StdResult<isize, S
     }
 }
 
-fn configure(webview: &ICoreWebView2, controller: &ICoreWebView2Controller) -> windows::core::Result<()> {
+fn configure(
+    webview: &ICoreWebView2,
+    controller: &ICoreWebView2Controller,
+    downloads: Option<&Path>,
+) -> windows::core::Result<()> {
     unsafe {
         controller.SetBounds(RECT {
             left: 0,
@@ -350,11 +407,9 @@ fn configure(webview: &ICoreWebView2, controller: &ICoreWebView2Controller) -> w
         let _ = settings.SetIsStatusBarEnabled(false);
         let _ = settings.SetIsZoomControlEnabled(false);
     }
-    let _ = cdp(
-        webview,
-        "Page.enable",
-        json!({}),
-    );
+    let _ = cdp(webview, "Page.enable", json!({}));
+    // Runtime.enable：fileChooserOpened / 下载进度等事件需要 Runtime 域先打开。
+    let _ = cdp(webview, "Runtime.enable", json!({}));
     let _ = cdp(
         webview,
         "Emulation.setDeviceMetricsOverride",
@@ -365,6 +420,24 @@ fn configure(webview: &ICoreWebView2, controller: &ICoreWebView2Controller) -> w
             "mobile": false
         }),
     );
+    // 下载：把文件落到该会话专属目录。Browser.setDownloadBehavior 在 WebView2 上
+    // 未必可用，失败则回退到 Page.setDownloadBehavior（两者都只是尽力而为）。
+    if let Some(dir) = downloads {
+        let _ = std::fs::create_dir_all(dir);
+        let path = dir.to_string_lossy().replace('\\', "/");
+        let browser = cdp(
+            webview,
+            "Browser.setDownloadBehavior",
+            json!({ "behavior": "allow", "downloadPath": path, "eventsEnabled": true }),
+        );
+        if browser.is_err() {
+            let _ = cdp(
+                webview,
+                "Page.setDownloadBehavior",
+                json!({ "behavior": "allow", "downloadPath": path }),
+            );
+        }
+    }
     Ok(())
 }
 
@@ -544,6 +617,51 @@ fn wire_events(webview: &ICoreWebView2, sink: &FrameSink) -> windows::core::Resu
     Ok(())
 }
 
+/// 订阅下载进度事件，完成时向 UI 发 `webview/liveDownloaded`。
+/// 不同 WebView2 版本对 Browser/Page.downloadProgress 支持不一，这里两个都订阅，
+/// 谁先来就用谁；失败完全忽略（下载目录本身始终可用，UI 也能主动列目录）。
+fn wire_download_events(webview: &ICoreWebView2, emitter: Arc<Mutex<Option<PluginEmitter>>>, session_id: String) {
+    let make_handler = |emitter: Arc<Mutex<Option<PluginEmitter>>>, sid: String| {
+        DevToolsProtocolEventReceivedEventHandler::create(Box::new(move |_sender, args| {
+            let Some(args) = args else { return Ok(()) };
+            let mut parameter = PWSTR::null();
+            unsafe { args.ParameterObjectAsJson(&mut parameter)? };
+            let text = take_pwstr(parameter);
+            let value: Value = serde_json::from_str(&text).unwrap_or(Value::Null);
+            let state = value.get("state").and_then(Value::as_str).unwrap_or("");
+            if !matches!(state, "completed" | "canceled") {
+                return Ok(());
+            }
+            let file_name = value
+                .get("suggestedFilename")
+                .and_then(Value::as_str)
+                .filter(|name| !name.is_empty())
+                .map(str::to_string)
+                .unwrap_or_else(|| value.get("guid").and_then(Value::as_str).unwrap_or("download").to_string());
+            let size = value.get("totalBytes").and_then(Value::as_u64).unwrap_or(0);
+            let emitter = emitter.lock().ok().and_then(|guard| guard.clone());
+            if let Some(emitter) = emitter {
+                let _ = emitter.event(
+                    "webview/liveDownloaded",
+                    json!({ "sessionId": sid, "fileName": file_name, "size": size }),
+                );
+            }
+            Ok(())
+        }))
+    };
+    for method in ["Browser.downloadProgress", "Page.downloadProgress"] {
+        let method_wide = CoTaskMemPWSTR::from(method);
+        let Ok(receiver) = (unsafe { webview.GetDevToolsProtocolEventReceiver(*method_wide.as_ref().as_pcwstr()) }) else {
+            continue;
+        };
+        let handler = make_handler(emitter.clone(), session_id.clone());
+        let mut token = 0i64;
+        unsafe {
+            let _ = receiver.add_DevToolsProtocolEventReceived(&handler, &mut token);
+        }
+    }
+}
+
 fn emit_current_state() {
     CONTEXT.with(|context| {
         if let Some(context) = context.borrow().as_ref() {
@@ -710,6 +828,9 @@ fn drain_commands(context: &mut Context) {
                     );
                 }
             }
+            Command::AttachFile { path, reply } => {
+                attach_file(&context.webview, path, reply);
+            }
             Command::Pause => {
                 if context.screencast {
                     stop_screencast(&context.webview);
@@ -854,7 +975,7 @@ fn emit_state(context: &Context) {
     }
     let url = take_pwstr(url);
     let title = take_pwstr(title);
-    let payload = json!({
+    let mut payload = json!({
         "url": url,
         "title": title,
         "canGoBack": can_back.as_bool(),
@@ -871,6 +992,13 @@ fn emit_state(context: &Context) {
             "height": capture_size(context).1,
         },
     });
+    // 多实例时带上 sessionId，UI 按它把状态分派给对应的 pane。
+    // 单实例兼容路径 session_id 为空，不写这个字段，避免干扰老 UI。
+    if !context.session_id.is_empty() {
+        payload
+            .as_object_mut()
+            .map(|map| map.insert("sessionId".to_string(), json!(context.session_id)));
+    }
     let emitter = context.emitter.lock().ok().and_then(|guard| guard.clone());
     if let Some(emitter) = emitter {
         let _ = emitter.event("webview/liveState", payload);
@@ -880,10 +1008,13 @@ fn emit_state(context: &Context) {
 fn emit_error(context: &Context, message: impl Into<String>) {
     let emitter = context.emitter.lock().ok().and_then(|guard| guard.clone());
     if let Some(emitter) = emitter {
-        let _ = emitter.event(
-            "webview/liveError",
-            json!({ "message": message.into() }),
-        );
+        let mut payload = json!({ "message": message.into() });
+        if !context.session_id.is_empty() {
+            payload
+                .as_object_mut()
+                .map(|map| map.insert("sessionId".to_string(), json!(context.session_id)));
+        }
+        let _ = emitter.event("webview/liveError", payload);
     }
 }
 
@@ -1015,5 +1146,95 @@ fn cdp(webview: &ICoreWebView2, method: &str, params: Value) -> windows::core::R
             *params.as_ref().as_pcwstr(),
             None::<&ICoreWebView2CallDevToolsProtocolMethodCompletedHandler>,
         )
+    }
+}
+
+/// 把一个本地文件挂到页面的 `input[type=file]`（阶段 4）。
+/// CDP 链：DOM.getDocument → DOM.querySelector('input[type=file]') → DOM.setFileInputFiles。
+/// 每步用完成回调串起来，最后把结果送回 RPC 的 reply channel。
+fn attach_file(webview: &ICoreWebView2, path: PathBuf, reply: Sender<StdResult<(), String>>) {
+    let path_text = path.to_string_lossy().replace('\\', "/");
+    let webview_doc = webview.clone();
+    let reply_for_doc = reply.clone();
+    let outer_failure_reply = reply;
+    let handler_doc = CallDevToolsProtocolMethodCompletedHandler::create(Box::new(
+        move |error_code, result| {
+            if let Err(error) = error_code {
+                let _ = reply_for_doc.send(Err(format!("读取页面 DOM 失败：{error}")));
+                return Ok(());
+            }
+            let parsed: Value = serde_json::from_str(&result).unwrap_or(Value::Null);
+            let root = parsed
+                .pointer("/root/nodeId")
+                .and_then(Value::as_i64)
+                .unwrap_or(0);
+            if root == 0 {
+                let _ = reply_for_doc.send(Err("页面没有可挂载的文件输入框".to_string()));
+                return Ok(());
+            }
+            let query_view = webview_doc.clone();
+            let query_view_for_call = query_view.clone();
+            let query_reply = reply_for_doc.clone();
+            let path_for_set = path_text.clone();
+            let handler_query = CallDevToolsProtocolMethodCompletedHandler::create(Box::new(
+                move |error_code, result| {
+                    if let Err(error) = error_code {
+                        let _ = query_reply.send(Err(format!("查找文件输入框失败：{error}")));
+                        return Ok(());
+                    }
+                    let parsed: Value = serde_json::from_str(&result).unwrap_or(Value::Null);
+                    let node_id = parsed.pointer("/nodeId").and_then(Value::as_i64).unwrap_or(0);
+                    if node_id == 0 {
+                        let _ = query_reply.send(Err("页面没有可挂载的文件输入框".to_string()));
+                        return Ok(());
+                    }
+                    let set_view = query_view.clone();
+                    let set_reply = query_reply.clone();
+                    let handler_set = CallDevToolsProtocolMethodCompletedHandler::create(Box::new(
+                        move |error_code, _result| {
+                            let outcome = error_code
+                                .map_err(|error| format!("挂载文件失败：{error}"));
+                            let _ = set_reply.send(outcome);
+                            Ok(())
+                        },
+                    ));
+                    let method = CoTaskMemPWSTR::from("DOM.setFileInputFiles");
+                    let params = CoTaskMemPWSTR::from(
+                        json!({ "nodeId": node_id, "files": [path_for_set] }).to_string().as_str(),
+                    );
+                    unsafe {
+                        let _ = set_view.CallDevToolsProtocolMethod(
+                            *method.as_ref().as_pcwstr(),
+                            *params.as_ref().as_pcwstr(),
+                            &handler_set,
+                        );
+                    }
+                    Ok(())
+                },
+            ));
+            let method = CoTaskMemPWSTR::from("DOM.querySelector");
+            let params = CoTaskMemPWSTR::from(
+                json!({ "nodeId": root, "selector": "input[type=file]" }).to_string().as_str(),
+            );
+            unsafe {
+                let _ = query_view_for_call.CallDevToolsProtocolMethod(
+                    *method.as_ref().as_pcwstr(),
+                    *params.as_ref().as_pcwstr(),
+                    &handler_query,
+                );
+            }
+            Ok(())
+        },
+    ));
+    let method = CoTaskMemPWSTR::from("DOM.getDocument");
+    let params = CoTaskMemPWSTR::from(json!({ "depth": -1, "pierce": true }).to_string().as_str());
+    unsafe {
+        if let Err(error) = webview.CallDevToolsProtocolMethod(
+            *method.as_ref().as_pcwstr(),
+            *params.as_ref().as_pcwstr(),
+            &handler_doc,
+        ) {
+            let _ = outer_failure_reply.send(Err(format!("发起 DOM 读取失败：{error}")));
+        }
     }
 }

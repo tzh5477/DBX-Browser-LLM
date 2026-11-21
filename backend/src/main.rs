@@ -3,6 +3,7 @@
 //! 职责：代替浏览器沙箱去抓取任意站点，把 HTML 清理成可安全渲染的片段，并按站点
 //! 规则抽取正文 / 章节导航。所有日志写 stderr，stdout 只输出 JSON-RPC 协议消息。
 
+use std::collections::HashMap;
 use std::sync::Mutex;
 use std::time::Duration;
 
@@ -14,10 +15,13 @@ use engine::cleaner::{clean, CleanOptions, CleanedPage, Engine, RenderMode};
 use engine::{history, net, site};
 use serde_json::{json, Map, Value};
 
+mod batch;
 mod books;
 mod browser;
 #[cfg(windows)]
 mod live;
+mod models;
+mod transfer;
 
 /// UI ↔ 宿主 JSON 桥单次参数上限是 2 MiB，Sidecar JSON 单条消息上限 8 MiB。
 /// 留出安全余量，避免宿主直接拒收。
@@ -28,7 +32,7 @@ const MAX_TIMEOUT_SECS: u64 = 60;
 const MAX_CHAPTER_PAGES: usize = 20;
 
 fn main() -> std::io::Result<()> {
-    let metadata = PluginMetadata::new("com.dbx.webview", env!("CARGO_PKG_VERSION"))
+    let metadata = PluginMetadata::new("com.xingxi.llm-workbench", env!("CARGO_PKG_VERSION"))
         .with_capability("workbench")
         .with_capability("events");
     PluginServer::new(metadata, Plugin::new())
@@ -40,10 +44,10 @@ fn main() -> std::io::Result<()> {
 
 struct Plugin {
     store: Mutex<Store>,
-    /// 插件内的实时页面（WebView2）。同一时间只保留一个离屏浏览器；
-    /// 切标签页时由 UI 导航到当前标签的地址。
+    /// 每个会话（modelId）一个离屏 WebView2，独立 STA 线程 + profile + 帧通道。
+    /// 阶段 2 从单例改为多实例：key 就是 sessionId（= modelId）。
     #[cfg(windows)]
-    live: Mutex<Option<live::LiveSession>>,
+    live: Mutex<HashMap<String, live::LiveSession>>,
 }
 
 impl Plugin {
@@ -51,7 +55,7 @@ impl Plugin {
         Self {
             store: Mutex::new(Store::load()),
             #[cfg(windows)]
-            live: Mutex::new(None),
+            live: Mutex::new(HashMap::new()),
         }
     }
 
@@ -77,7 +81,7 @@ impl PluginHandler for Plugin {
         match method {
             "webview/check" => Ok(json!({
                 "ok": true,
-                "plugin": "com.dbx.webview",
+                "plugin": "com.xingxi.llm-workbench",
                 "version": env!("CARGO_PKG_VERSION"),
                 "dataDir": store_dir().map(|path| path.display().to_string()),
             })),
@@ -95,6 +99,14 @@ impl PluginHandler for Plugin {
             }
             "webview/settings" => Ok(self.settings()),
             "webview/saveSettings" => self.save_settings(&params),
+            // ── 官网大模型配置 + 访问记录（阶段 1）─────────────────────
+            "webview/modelsList" => self.models_list(),
+            "webview/modelUpsert" => self.model_upsert(&params),
+            "webview/modelRemove" => self.model_remove(&params),
+            "webview/visitRecord" => self.visit_record(&params),
+            // ── 一键批量群发（阶段 3）─────────────────────────────────
+            #[cfg(windows)]
+            "webview/batchSend" => self.batch_send(&params),
             "webview/render" => self.render(&params),
             "webview/image" => {
                 // 沙箱 CSP 是 `img-src 'self' data: blob:`，远端图片必须由
@@ -312,32 +324,50 @@ impl PluginHandler for Plugin {
             "webview/liveOpen" => self.live_open(&params, emitter),
             #[cfg(windows)]
             "webview/liveNavigate" => {
-                let url = require_str(&params, "url")?.to_string();
-                self.live_command(live::Command::Navigate(url))
+        let sid = live_sid(&params);
+        let url = require_str(&params, "url")?.to_string();
+        self.live_command(&sid, live::Command::Navigate(url))
             }
             #[cfg(windows)]
-            "webview/liveBack" => self.live_command(live::Command::Back),
+            "webview/liveBack" => {
+                let sid = live_sid(&params);
+                self.live_command(&sid, live::Command::Back)
+            }
             #[cfg(windows)]
-            "webview/liveForward" => self.live_command(live::Command::Forward),
+            "webview/liveForward" => {
+                let sid = live_sid(&params);
+                self.live_command(&sid, live::Command::Forward)
+            }
             #[cfg(windows)]
-            "webview/liveReload" => self.live_command(live::Command::Reload),
+            "webview/liveReload" => {
+                let sid = live_sid(&params);
+                self.live_command(&sid, live::Command::Reload)
+            }
             #[cfg(windows)]
-            "webview/livePause" => self.live_command(live::Command::Pause),
+            "webview/livePause" => {
+                let sid = live_sid(&params);
+                self.live_command(&sid, live::Command::Pause)
+            }
             #[cfg(windows)]
-            "webview/liveResume" => self.live_command(live::Command::Resume),
+            "webview/liveResume" => {
+                let sid = live_sid(&params);
+                self.live_command(&sid, live::Command::Resume)
+            }
             #[cfg(windows)]
             "webview/liveInput" => self.live_input(&params),
             #[cfg(windows)]
             "webview/liveQuality" => {
+                let sid = live_sid(&params);
                 // 滚动时降到 60 换帧率，停手恢复 85 换清晰度。
                 let quality = params
                     .get("quality")
                     .and_then(Value::as_i64)
                     .unwrap_or(80) as i32;
-                self.live_command(live::Command::Quality(quality))
+                self.live_command(&sid, live::Command::Quality(quality))
             }
             #[cfg(windows)]
             "webview/liveResize" => {
+                let sid = live_sid(&params);
                 let width = params.get("width").and_then(Value::as_i64).unwrap_or(0);
                 let height = params.get("height").and_then(Value::as_i64).unwrap_or(0);
                 if width <= 0 || height <= 0 {
@@ -347,7 +377,7 @@ impl PluginHandler for Plugin {
                     .get("dpr")
                     .and_then(Value::as_f64)
                     .unwrap_or(1.0);
-                self.live_command(live::Command::Viewport {
+                self.live_command(&sid, live::Command::Viewport {
                     width: width as i32,
                     height: height as i32,
                     scale,
@@ -355,12 +385,13 @@ impl PluginHandler for Plugin {
             }
             #[cfg(windows)]
             "webview/liveEval" => {
+                let sid = live_sid(&params);
                 let expression = require_str(&params, "expression")?.to_string();
                 if expression.len() > 64 * 1024 {
                     return Err(PluginError::new(-32602, "实时页面脚本过长"));
                 }
                 let (reply_tx, reply_rx) = std::sync::mpsc::channel();
-                self.live_command(live::Command::Eval {
+                self.live_command(&sid, live::Command::Eval {
                     expression,
                     reply: reply_tx,
                 })?;
@@ -372,27 +403,69 @@ impl PluginHandler for Plugin {
             }
             #[cfg(windows)]
             "webview/liveStatus" => {
+                let sid = params.get("sessionId").and_then(Value::as_str);
+                let guard = self
+                    .live
+                    .lock()
+                    .map_err(|_| PluginError::new(-32000, "实时页面状态不可用"))?;
+                if let Some(sid) = sid {
+                    Ok(json!({
+                        "ok": true,
+                        "sessionId": sid,
+                        "running": guard.contains_key(sid),
+                        "viewport": { "width": live::VIEW_WIDTH, "height": live::VIEW_HEIGHT },
+                    }))
+                } else {
+                    Ok(json!({
+                        "ok": true,
+                        "running": !guard.is_empty(),
+                        "sessions": guard.keys().cloned().collect::<Vec<_>>(),
+                        "viewport": { "width": live::VIEW_WIDTH, "height": live::VIEW_HEIGHT },
+                    }))
+                }
+            }
+            #[cfg(windows)]
+            "webview/liveUpload" => self.live_upload(&params),
+            #[cfg(windows)]
+            "webview/liveDownloads" => self.live_downloads(&params),
+            #[cfg(windows)]
+            "webview/liveDownloadRead" => self.live_download_read(&params),
+            #[cfg(windows)]
+            "webview/liveList" => {
                 let guard = self
                     .live
                     .lock()
                     .map_err(|_| PluginError::new(-32000, "实时页面状态不可用"))?;
                 Ok(json!({
                     "ok": true,
-                    "running": guard.is_some(),
-                    "viewport": { "width": live::VIEW_WIDTH, "height": live::VIEW_HEIGHT },
+                    "sessions": guard.keys().cloned().collect::<Vec<_>>(),
                 }))
             }
             #[cfg(windows)]
             "webview/liveClose" => {
-                let session = self
+                // 传 sessionId 只关一个；不传关闭全部。
+                let sid = params.get("sessionId").and_then(Value::as_str);
+                let mut guard = self
                     .live
                     .lock()
-                    .map_err(|_| PluginError::new(-32000, "实时页面状态不可用"))?
-                    .take();
-                if let Some(session) = session {
-                    session.close();
-                }
-                Ok(json!({ "ok": true }))
+                    .map_err(|_| PluginError::new(-32000, "实时页面状态不可用"))?;
+                let closed: Vec<String> = match sid {
+                    Some(sid) => {
+                        if let Some(session) = guard.remove(sid) {
+                            session.close();
+                            vec![sid.to_string()]
+                        } else {
+                            Vec::new()
+                        }
+                    }
+                    None => {
+                        // HashMap::clear 会 drop 每个 LiveSession，其 Drop 会发 Close 消息。
+                        let ids: Vec<String> = guard.keys().cloned().collect();
+                        guard.clear();
+                        ids
+                    }
+                };
+                Ok(json!({ "ok": true, "closed": closed }))
             }
             "connection/test" => Ok(json!({ "success": true, "message": "网页阅读插件就绪" })),
             _ => Err(PluginError::method_not_found(method)),
@@ -434,25 +507,212 @@ impl Plugin {
         Ok(json!({ "ok": true }))
     }
 
+    // ── 官网大模型配置 + 访问记录 ─────────────────────────────────────
+
+    fn models_list(&self) -> Result<Value, PluginError> {
+        match self.store.lock() {
+            Ok(store) => Ok(json!({
+                "ok": true,
+                "models": store.models,
+                "visits": store.visits,
+            })),
+            Err(_) => Err(PluginError::new(-32000, "模型配置存储不可用")),
+        }
+    }
+
+    fn model_upsert(&self, params: &Value) -> Result<Value, PluginError> {
+        let raw = params
+            .get("model")
+            .cloned()
+            .ok_or_else(|| PluginError::new(-32602, "缺少参数 model"))?;
+        let incoming: models::LlmModel = serde_json::from_value(raw)
+            .map_err(|error| PluginError::new(-32602, format!("模型格式错误：{error}")))?;
+        let model = models::normalize(incoming)
+            .map_err(|message| PluginError::new(-32602, message))?;
+        let mut store = self
+            .store
+            .lock()
+            .map_err(|_| PluginError::new(-32000, "模型配置存储不可用"))?;
+        models::upsert(&mut store.models, model.clone());
+        store.persist();
+        Ok(json!({ "ok": true, "model": model }))
+    }
+
+    fn model_remove(&self, params: &Value) -> Result<Value, PluginError> {
+        let id = require_str(params, "id")?.to_string();
+        let mut store = self
+            .store
+            .lock()
+            .map_err(|_| PluginError::new(-32000, "模型配置存储不可用"))?;
+        let removed = models::remove(&mut store.models, &id);
+        store.visits.retain(|visit| visit.model_id != id);
+        store.persist();
+        drop(store);
+        // 删除模型时一并关掉它的实时会话，释放 WebView2 资源。
+        #[cfg(windows)]
+        if let Ok(mut live) = self.live.lock() {
+            if let Some(session) = live.remove(&id) {
+                session.close();
+            }
+        }
+        Ok(json!({ "ok": true, "id": id, "removed": removed }))
+    }
+
+    fn visit_record(&self, params: &Value) -> Result<Value, PluginError> {
+        let model_id = require_str(params, "modelId")?.to_string();
+        let at = params
+            .get("at")
+            .and_then(Value::as_i64)
+            .unwrap_or_else(|| {
+                std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap_or_default()
+                    .as_millis() as i64
+            });
+        let mut store = self
+            .store
+            .lock()
+            .map_err(|_| PluginError::new(-32000, "模型配置存储不可用"))?;
+        models::record_visit(&mut store.visits, model_id.clone(), at);
+        store.persist();
+        Ok(json!({ "ok": true, "modelId": model_id, "at": at }))
+    }
+
+    /// 一键批量群发：对每个 sessionId 串行执行注入脚本。
+    ///
+    /// 串行是关键：live::Eval 用同步 reply channel 等 CDP 回调，并行只会把
+    /// 8s 超时叠在一起；且多站点同时提交更容易触发风控。单个失败不影响其余。
+    #[cfg(windows)]
+    fn batch_send(&self, params: &Value) -> Result<Value, PluginError> {
+        let text = require_str(params, "text")?.to_string();
+        if text.chars().count() > 20_000 {
+            return Err(PluginError::new(-32602, "群发文本过长"));
+        }
+        let ids: Vec<String> = params
+            .get("sessionIds")
+            .and_then(Value::as_array)
+            .map(|values| {
+                values
+                    .iter()
+                    .filter_map(Value::as_str)
+                    .map(str::to_string)
+                    .collect()
+            })
+            .unwrap_or_default();
+        if ids.is_empty() {
+            return Err(PluginError::new(-32602, "没有选中要群发的模型"));
+        }
+        if ids.len() > 16 {
+            return Err(PluginError::new(-32602, "一次最多群发 16 个模型"));
+        }
+
+        let config = batch::load_config(&data_dir()?);
+        let models = self
+            .store
+            .lock()
+            .map_err(|_| PluginError::new(-32000, "模型配置存储不可用"))?
+            .models
+            .clone();
+
+        let mut results = Vec::with_capacity(ids.len());
+        for sid in &ids {
+            let url = models
+                .iter()
+                .find(|model| &model.id == sid)
+                .map(|model| model.url.as_str())
+                .unwrap_or("");
+            let rule = batch::select_for_url(&config, url)
+                .cloned()
+                .unwrap_or_else(batch::generic_rule);
+            let expression = batch::build_script(&text, &rule);
+            let result = self.eval_batch_one(sid, &expression);
+            results.push(result);
+        }
+        let ok_count = results
+            .iter()
+            .filter(|item| item.get("ok").and_then(Value::as_bool) == Some(true))
+            .count();
+        Ok(json!({
+            "ok": true,
+            "okCount": ok_count,
+            "total": results.len(),
+            "results": results,
+        }))
+    }
+
+    /// 群发中的单会话 eval：把 CDP 返回的结构化状态串解析成 JSON。
+    #[cfg(windows)]
+    fn eval_batch_one(&self, sid: &str, expression: &str) -> Value {
+        if expression.len() > 64 * 1024 {
+            return json!({ "sessionId": sid, "ok": false, "error": "注入脚本过长" });
+        }
+        let (reply_tx, reply_rx) = std::sync::mpsc::channel();
+        if let Err(error) = self.live_command(
+            sid,
+            live::Command::Eval {
+                expression: expression.to_string(),
+                reply: reply_tx,
+            },
+        ) {
+            return json!({ "sessionId": sid, "ok": false, "error": error.message });
+        }
+        match reply_rx.recv_timeout(Duration::from_secs(8)) {
+            // CDP 的 result.value 可能是脚本返回的状态串（JSON），也可能直接是对象。
+            Ok(Ok(value)) => {
+                let parsed = match &value {
+                    Value::String(raw) => serde_json::from_str::<Value>(raw).unwrap_or(value.clone()),
+                    other => other.clone(),
+                };
+                let ok = parsed.get("ok").and_then(Value::as_bool).unwrap_or(false);
+                let mut item = json!({ "sessionId": sid, "ok": ok });
+                if let Some(obj) = item.as_object_mut() {
+                    for key in ["error", "detail", "via"] {
+                        if let Some(val) = parsed.get(key) {
+                            obj.insert(key.to_string(), val.clone());
+                        }
+                    }
+                }
+                item
+            }
+            Ok(Err(message)) => json!({ "sessionId": sid, "ok": false, "error": message }),
+            Err(_) => json!({ "sessionId": sid, "ok": false, "error": "执行超时" }),
+        }
+    }
+
     #[cfg(windows)]
     fn live_open(
         &self,
         params: &Value,
         emitter: &PluginEmitter,
     ) -> Result<Value, PluginError> {
+        let sid = live_sid(params);
         let url = require_str(params, "url")?.to_string();
+        let is_legacy = sid == "default";
         let mut guard = self
             .live
             .lock()
             .map_err(|_| PluginError::new(-32000, "实时页面状态不可用"))?;
-        if guard.is_none() {
-            let profile = data_dir()?.join("live-browser");
-            let session = live::LiveSession::start(profile)
-                .map_err(|message| PluginError::new(-32000, message))?;
-            *guard = Some(session);
+        // 会话不存在才创建：profile 按 modelId 隔离，登录态互不污染。
+        if !guard.contains_key(&sid) {
+            // 旧的单实时页面（无 sessionId）沿用原 profile 目录与原帧通道，
+            // 保证升级后小红书等旧功能的登录态与画面都不变。
+            let profile = if is_legacy {
+                data_dir()?.join("live-browser")
+            } else {
+                data_dir()?.join("live-browser").join(&sid)
+            };
+            let session = if is_legacy {
+                live::LiveSession::start(profile)
+            } else {
+                let downloads = transfer::download_dir(&data_dir()?, &sid)
+                    .ok_or_else(|| PluginError::new(-32602, "会话 ID 不合法"))?;
+                live::LiveSession::start_session(profile, sid.clone(), downloads)
+            }
+            .map_err(|message| PluginError::new(-32000, message))?;
+            guard.insert(sid.clone(), session);
         }
         let session = guard
-            .as_ref()
+            .get(&sid)
             .ok_or_else(|| PluginError::new(-32000, "实时页面启动失败"))?;
         // UI 会带上视口尺寸（CSS 像素）与设备像素比：页面按这个尺寸排版、
         // 按 DPR 栅格化，采集才有足够的物理像素，不会放大发虚。
@@ -478,27 +738,29 @@ impl Plugin {
             .map_err(|message| PluginError::new(-32000, message))?;
         Ok(json!({
             "ok": true,
+            "sessionId": sid,
             "viewport": { "width": live::VIEW_WIDTH, "height": live::VIEW_HEIGHT },
         }))
     }
 
     #[cfg(windows)]
-    fn live_command(&self, command: live::Command) -> Result<Value, PluginError> {
+    fn live_command(&self, sid: &str, command: live::Command) -> Result<Value, PluginError> {
         let guard = self
             .live
             .lock()
             .map_err(|_| PluginError::new(-32000, "实时页面状态不可用"))?;
         let session = guard
-            .as_ref()
-            .ok_or_else(|| PluginError::new(-32000, "实时页面尚未启动"))?;
+            .get(sid)
+            .ok_or_else(|| PluginError::new(-32000, format!("实时页面会话不存在：{sid}")))?;
         session
             .send(command)
             .map_err(|message| PluginError::new(-32000, message))?;
-        Ok(json!({ "ok": true }))
+        Ok(json!({ "ok": true, "sessionId": sid }))
     }
 
     #[cfg(windows)]
     fn live_input(&self, params: &Value) -> Result<Value, PluginError> {
+        let sid = live_sid(params);
         let event = params
             .get("event")
             .cloned()
@@ -523,7 +785,93 @@ impl Plugin {
         {
             return Err(PluginError::new(-32602, "实时页面输入坐标越界"));
         }
-        self.live_command(live::Command::Input(event))
+        self.live_command(&sid, live::Command::Input(event))
+    }
+
+    /// 分块上传：把 base64 分块写到 <dataDir>/live-uploads/<sid>/<fileName>；
+    /// 末块写完后通过 CDP 把本地文件挂到 WebView2 的 input[type=file]。
+    #[cfg(windows)]
+    fn live_upload(&self, params: &Value) -> Result<Value, PluginError> {
+        let sid = live_sid(params);
+        let file_name = require_str(params, "fileName")?.to_string();
+        let offset = params
+            .get("offset")
+            .and_then(Value::as_u64)
+            .ok_or_else(|| PluginError::new(-32602, "缺少参数 offset"))?;
+        let chunk_b64 = require_str(params, "chunkB64")?;
+        if chunk_b64.len() > 2 * 1024 * 1024 {
+            return Err(PluginError::new(-32602, "上传分块过大"));
+        }
+        let bytes = transfer::b64_decode(chunk_b64)
+            .ok_or_else(|| PluginError::new(-32602, "上传分块 base64 无效"))?;
+        let final_chunk = params.get("final").and_then(Value::as_bool).unwrap_or(false);
+        let root = transfer::upload_dir(&data_dir()?, &sid)
+            .ok_or_else(|| PluginError::new(-32602, "会话 ID 不合法"))?;
+        let size = transfer::write_chunk(&root, &file_name, offset, &bytes)
+            .map_err(|message| PluginError::new(-32000, message))?;
+
+        if final_chunk {
+            let path = transfer::staged_path(&root, &file_name)
+                .map_err(|message| PluginError::new(-32000, message))?;
+            let (reply_tx, reply_rx) = std::sync::mpsc::channel();
+            self.live_command(
+                &sid,
+                live::Command::AttachFile {
+                    path,
+                    reply: reply_tx,
+                },
+            )
+            .map_err(|error| PluginError::new(-32000, error.message))?;
+            match reply_rx.recv_timeout(Duration::from_secs(10)) {
+                Ok(Ok(())) => Ok(json!({ "ok": true, "sessionId": sid, "size": size, "attached": true })),
+                Ok(Err(message)) => {
+                    // 文件已落盘，只是没能自动挂到 input：UI 可提示用户手动选择。
+                    Ok(json!({ "ok": true, "sessionId": sid, "size": size, "attached": false, "warning": message }))
+                }
+                Err(_) => Ok(json!({ "ok": true, "sessionId": sid, "size": size, "attached": false, "warning": "挂载文件超时，请在页面里手动选择" })),
+            }
+        } else {
+            Ok(json!({ "ok": true, "sessionId": sid, "size": size, "attached": false }))
+        }
+    }
+
+    /// 列出某会话下载目录里的文件。
+    #[cfg(windows)]
+    fn live_downloads(&self, params: &Value) -> Result<Value, PluginError> {
+        let sid = live_sid(params);
+        let root = transfer::download_dir(&data_dir()?, &sid)
+            .ok_or_else(|| PluginError::new(-32602, "会话 ID 不合法"))?;
+        let files = transfer::list_downloads(&root);
+        Ok(json!({ "ok": true, "sessionId": sid, "files": files }))
+    }
+
+    /// 分块读取下载文件（base64），UI 侧拼装后用 host.saveFile 落到用户指定路径。
+    #[cfg(windows)]
+    fn live_download_read(&self, params: &Value) -> Result<Value, PluginError> {
+        let sid = live_sid(params);
+        let file_name = require_str(params, "fileName")?.to_string();
+        let offset = params.get("offset").and_then(Value::as_u64).unwrap_or(0);
+        let max_bytes = params
+            .get("maxBytes")
+            .and_then(Value::as_u64)
+            .unwrap_or(256 * 1024)
+            .clamp(4 * 1024, 1024 * 1024) as usize;
+        let root = transfer::download_dir(&data_dir()?, &sid)
+            .ok_or_else(|| PluginError::new(-32602, "会话 ID 不合法"))?;
+        let (data_b64, total, done) = transfer::read_download_chunk(&root, &file_name, offset, max_bytes)
+            .map_err(|message| PluginError::new(-32000, message))?;
+        // read = 本次实际返回的明文字节数，UI 据此精确推进 offset（不能靠 base64 长度反推）。
+        let read = if data_b64.is_empty() { 0 } else { (data_b64.len() / 4) * 3 - data_b64.bytes().rev().take_while(|b| *b == b'=').count() };
+        Ok(json!({
+            "ok": true,
+            "sessionId": sid,
+            "fileName": file_name,
+            "offset": offset,
+            "read": read,
+            "total": total,
+            "done": done,
+            "dataB64": data_b64,
+        }))
     }
 
     fn search_url(&self, params: &Value) -> Result<Value, PluginError> {
@@ -1225,6 +1573,12 @@ struct Store {
     /// 用户在内置预设上删掉的域名（可恢复）。
     blocked_hosts: Vec<String>,
     bookmarks: Value,
+    /// 官网大模型配置（阶段 1）。老配置没有该字段，`#[serde(default)]` 兜底。
+    models: Vec<models::LlmModel>,
+    /// 模型访问记录，上限 500，超出丢最旧。
+    visits: Vec<models::VisitRecord>,
+    /// 是否已经写入过种子模型：用户删空后不应在下次启动又冒出来。
+    models_seeded: bool,
     #[serde(skip)]
     path: Option<std::path::PathBuf>,
 }
@@ -1240,6 +1594,12 @@ impl Store {
             Err(_) => Store::default(),
         };
         store.path = Some(path);
+        // 首次启动写入种子；之后 models_seeded=true，用户删空也不会再灌回来。
+        if !store.models_seeded {
+            store.models = models::seed_models();
+            store.models_seeded = true;
+            store.persist();
+        }
         store
     }
 
@@ -1262,6 +1622,18 @@ impl Store {
 }
 
 // ------------------------------------------------------------------ 小工具
+
+/// 实时命令的会话 key。新多 pane 路径显式传 sessionId（=modelId）；
+/// 旧的单实时页面（小红书等）不传，落到 "default" 会话（保持旧帧通道兼容）。
+fn live_sid(params: &Value) -> String {
+    params
+        .get("sessionId")
+        .and_then(Value::as_str)
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .unwrap_or("default")
+        .to_string()
+}
 
 fn require_str<'a>(params: &'a Value, key: &str) -> Result<&'a str, PluginError> {
     params
@@ -1352,6 +1724,49 @@ fn object(entries: Vec<(&str, Value)>) -> Value {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn session_id_falls_back_to_default() {
+        // 旧的单实时页面不传 sessionId → 落 "default" 会话，保持帧通道兼容。
+        assert_eq!(live_sid(&json!({})), "default");
+        assert_eq!(live_sid(&json!({ "sessionId": "   " })), "default");
+        assert_eq!(live_sid(&json!({ "sessionId": 123 })), "default");
+        assert_eq!(live_sid(&json!({ "sessionId": "  m1  " })), "m1");
+    }
+
+    #[test]
+    fn store_roundtrips_models_and_visits() {
+        let mut store = Store::default();
+        assert_eq!(store.models.len(), 0);
+        for name in ["A", "B", "C"] {
+            let model = models::normalize(models::LlmModel {
+                name: name.to_string(),
+                url: format!("https://{name}.test/"),
+                ..models::LlmModel::default()
+            })
+            .unwrap();
+            models::upsert(&mut store.models, model);
+        }
+        models::record_visit(&mut store.visits, store.models[0].id.clone(), 1234);
+        store.models_seeded = true;
+
+        let serialized = serde_json::to_string(&store).unwrap();
+        let reloaded: Store = serde_json::from_str(&serialized).unwrap();
+        assert_eq!(reloaded.models.len(), 3);
+        assert_eq!(reloaded.models[0].name, "A");
+        assert_eq!(reloaded.visits.len(), 1);
+        assert_eq!(reloaded.visits[0].at, 1234);
+        assert!(reloaded.models_seeded);
+    }
+
+    #[test]
+    fn store_accepts_old_config_without_model_fields() {
+        let old = r#"{"customRules":[],"blockedHosts":[],"bookmarks":{}}"#;
+        let store: Store = serde_json::from_str(old).unwrap();
+        assert!(store.models.is_empty());
+        assert!(store.visits.is_empty());
+        assert!(!store.models_seeded);
+    }
 
     #[test]
     fn encodes_search_queries() {
