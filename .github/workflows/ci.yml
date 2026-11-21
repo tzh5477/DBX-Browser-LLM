@@ -1,0 +1,62 @@
+name: CI
+
+# 每次 push / PR 都跑，作为回归门禁。
+# release 打包仍由 plugin-release.yml 负责，两者互不干扰。
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    name: Backend tests + UI checks
+    # sidecar 依赖 WebView2 + CDP，且 cargo test 会编译 #[cfg(windows)] 分支，
+    # 必须在 Windows runner 上跑。
+    runs-on: windows-2022
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install plugin CLI (provides dbx-plugin-sdk)
+        # SDK 不在 crates.io，本地与发布工作流都用 plugin-cli 携带的副本，
+        # 版本钉住，避免上游升级导致 patch 路径变化。
+        run: npm install -g @dbx-app/plugin-cli@0.1.9
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo artifacts
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: backend
+
+      - name: Run backend tests
+        shell: pwsh
+        working-directory: backend
+        run: |
+          $sdk = ((npm root -g) + '/@dbx-app/plugin-cli/sdk-root/plugins/sdk/rust/dbx-plugin-sdk') -replace '\\','/'
+          if (-not (Test-Path $sdk)) { throw "dbx-plugin-sdk not found at: $sdk" }
+          Write-Host "Using SDK: $sdk"
+          cargo test --bin dbx-plugin-webview --config "patch.crates-io.dbx-plugin-sdk.path='$sdk'"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Build multi-session PoC
+        shell: pwsh
+        working-directory: backend
+        run: |
+          $sdk = ((npm root -g) + '/@dbx-app/plugin-cli/sdk-root/plugins/sdk/rust/dbx-plugin-sdk') -replace '\\','/'
+          cargo build --example multi_session_poc --config "patch.crates-io.dbx-plugin-sdk.path='$sdk'"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Check UI syntax and manifest identity
+        shell: pwsh
+        run: |
+          node --check ui/app.js
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node -e "const fs=require('fs'); const m=JSON.parse(fs.readFileSync('manifest.json','utf8')); if(m.id!=='com.xingxi.llm-workbench'){throw new Error('unexpected manifest id: '+m.id)} console.log('manifest ok:',m.id,m.version)"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
